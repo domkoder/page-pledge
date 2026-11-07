@@ -9,6 +9,7 @@ import { lamportsToSolString } from "./lib/lamports";
 import { useSolanaClient } from "./lib/solana-client-context";
 import { ellipsify } from "./lib/explorer";
 import { VaultCard } from "./components/vault-card";
+import { PrototypeAppFlow } from "./components/prototype/prototype-app-flow";
 import { GridBackground } from "./components/grid-background";
 import { ThemeToggle } from "./components/theme-toggle";
 import { ClusterSelect } from "./components/cluster-select";
@@ -260,6 +261,19 @@ export default function Home() {
                 </p>
               </section>
             )}
+
+            {/* PagePledge UI Prototype Section (ADR 0008, 0009) */}
+            <section className="mb-12">
+              <div className="mb-6 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 pb-3">
+                <div>
+                  <h2 className="text-xl font-bold tracking-tight">PagePledge Flow Prototype</h2>
+                  <p className="text-xs text-neutral-500">
+                    Switch between 3 radically different UI variants (A, B, C) using the floating bottom switcher or ← → arrow keys.
+                  </p>
+                </div>
+              </div>
+              <PrototypeAppFlow />
+            </section>
 
             {/* Vault Program Section */}
             <VaultCard />
