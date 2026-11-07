@@ -69,7 +69,7 @@ export class SolanaChain implements ChainClient {
     _creator: string,
     _intent: ValidatedCohortIntent
   ): Promise<TxResult<CohortAccount>> {
-    // TODO(anchor:create_cohort): Derive Cohort PDA [b"cohort", creator, id] and Vault USDC Token Account PDA,
+    // TODO(anchor:create_cohort): Derive Cohort PDA [b"cohort", creator, id] and 0-byte Vault SystemAccount PDA,
     // serialize ValidatedCohortIntent parameters, and send `program.methods.createCohort(...)`.
     throw new Error('TODO: SolanaChain.create_cohort not yet wired to deployed Anchor program');
   }
@@ -78,13 +78,13 @@ export class SolanaChain implements ChainClient {
     _caller: string,
     _cohortId: string
   ): Promise<TxResult<CohortAccount>> {
-    // TODO(anchor:start_cohort): Send `program.methods.startCohort()` signed by cohort creator once >= 2 joined.
+    // TODO(anchor:start_cohort): Send `program.methods.startCohort()` signed by cohort creator or joined participant once >= 2 joined.
     throw new Error('TODO: SolanaChain.start_cohort not yet wired to deployed Anchor program');
   }
 
   public async join(_user: string, _cohortId: string): Promise<TxResult<CohortAccount>> {
-    // TODO(anchor:join): Derive Participant PDA [b"participant", cohort, user], transfer `cohort.stake` USDC
-    // from user's ATA to cohort Vault ATA via SPL Token program.
+    // TODO(anchor:join): Derive Participant PDA [b"participant", cohort, user], transfer `cohort.stake` lamports
+    // from user wallet to cohort Vault PDA via SystemProgram::transfer.
     throw new Error('TODO: SolanaChain.join not yet wired to deployed Anchor program');
   }
 
@@ -107,8 +107,8 @@ export class SolanaChain implements ChainClient {
     _attestation: OracleAttestation
   ): Promise<TxResult<MilestoneCommitRecord>> {
     // TODO(anchor:complete_milestone): Prepend Ed25519SigVerify111111111111111111111111111 instruction
-    // (or verify oracle co-signer) over canonical PAGEPLEDGE_ATT_V1 payload and set bit `1 << milestone_idx`
-    // in `participant.completed_bitmap`.
+    // over canonical PAGEPLEDGE_ATT_V1 payload, set bit `1 << milestone_idx` in `participant.completed_bitmap`,
+    // and update `cohort.last_oracle_ts = clock.unix_timestamp`.
     throw new Error('TODO: SolanaChain.complete_milestone not yet wired to deployed Anchor program');
   }
 
@@ -118,26 +118,26 @@ export class SolanaChain implements ChainClient {
     _targetUser: string
   ): Promise<TxResult<{ missedCount: number; forfeit: bigint; bounty: bigint }>> {
     // TODO(anchor:settle_user): Permissionless ix after `last_deadline + grace`. Tallies missed milestones,
-    // transfers `min(1% of forfeit, 1 USDC)` bounty to `caller` ATA, and records net forfeit on Cohort PDA.
+    // transfers `min(1% of forfeit, 0.01 SOL)` bounty in lamports to `caller`, and updates accumulators on Cohort PDA.
     throw new Error('TODO: SolanaChain.settle_user not yet wired to deployed Anchor program');
   }
 
   public async finalize(_caller: string, _cohortId: string): Promise<TxResult<EconomicsResult>> {
     // TODO(anchor:finalize): Permissionless ix once `settled_count == participant_count`. Computes pool,
-    // protocol fee (200 bps), haircut h, and transfers protocol fee + rounding dust to Treasury ATA.
+    // protocol fee (200 bps), haircut h, and transfers protocol fee + rounding dust in lamports to Treasury.
     throw new Error('TODO: SolanaChain.finalize not yet wired to deployed Anchor program');
   }
 
   public async claim(_user: string, _cohortId: string): Promise<TxResult<{ payout: bigint }>> {
-    // TODO(anchor:claim): Transfers `payout_i` from Cohort Vault ATA to `user` ATA and marks `claimed = true`.
+    // TODO(anchor:claim): Transfers `payout_i` lamports from Cohort Vault PDA to `user` and marks `claimed = true`.
     throw new Error('TODO: SolanaChain.claim not yet wired to deployed Anchor program');
   }
 
   public async faucet(
     _user: string,
-    _amountMicroUsdc: bigint
+    _amountLamports?: bigint
   ): Promise<TxResult<{ newBalance: bigint }>> {
-    throw new Error('TODO: Devnet USDC faucet mint instruction');
+    throw new Error('TODO: Devnet SOL airdrop instruction');
   }
 
   public advanceClock(_deltaSeconds: number): void {

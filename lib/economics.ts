@@ -1,24 +1,24 @@
 /**
  * PagePledge Protocol Economics (Pure Functions)
  *
- * All monetary amounts are represented in USDC base units (6 decimals, BigInt).
- * 1 USDC = 1_000_000n micro-USDC.
+ * All monetary amounts are represented in Native SOL lamports (9 decimals, BigInt).
+ * 1 SOL = 1_000_000_000n lamports.
  * No floating-point numbers are used anywhere in accounting calculations.
  */
 
-export const USDC_DECIMALS = 6;
-export const ONE_USDC = 1_000_000n;
+export const SOL_DECIMALS = 9;
+export const LAMPORTS_PER_SOL = 1_000_000_000n;
 export const BPS_DENOMINATOR = 10_000n;
 export const PROTOCOL_FEE_BPS = 200n; // Fixed 2.00% (200 bps) of net forfeits
 export const SETTLE_BOUNTY_BPS = 100n; // 1.00% (100 bps) of user's forfeit
-export const MAX_SETTLE_BOUNTY = ONE_USDC; // Cap at 1.00 USDC (1_000_000n)
+export const MAX_SETTLE_BOUNTY = 10_000_000n; // Cap at 0.01 SOL (10_000_000n lamports)
 export const SECONDS_PER_YEAR = 31_536_000n; // 365 * 24 * 60 * 60
 
 export type MilestoneOutcome = 'PENDING' | 'COMMITTED' | 'PASSED' | 'MISSED' | 'NEUTRAL';
 
 export interface ParticipantEconomicsInput {
   user: string;
-  stake: bigint; // S_i
+  stake: bigint; // S_i in lamports
   missedCount: number; // missed_i (0..M)
   eligible: boolean; // true iff all M milestones are PASSED
   bountyPaid?: bigint; // Optional override if already settled; otherwise computed via computeSettleBounty
@@ -35,7 +35,6 @@ export interface EconomicsInput {
   vaultAssetsAtFinalize?: bigint;
   simulatedYield?: bigint;
   lenderLoss?: bigint;
-  feeBps?: bigint; // Fixed by protocol at 200n, parameterised only for unit test flexibility
 }
 
 export interface ParticipantPayoutBreakdown {
@@ -44,7 +43,7 @@ export interface ParticipantPayoutBreakdown {
   missedCount: number;
   eligible: boolean;
   forfeit: bigint; // F_i = floor(S_i * missed_i / M)
-  bounty: bigint; // bounty_i = min(floor(F_i * 100 / 10000), 1_000_000n)
+  bounty: bigint; // bounty_i = min(floor(F_i * 100 / 10000), 10_000_000n)
   netForfeit: bigint; // N_i = F_i - bounty_i
   preservedStakeAfterHaircut: bigint; // floor(h * (S_i - F_i))
   rewardShare: bigint; // Share of Pool (or refund of net forfeit if nobody is eligible)
@@ -89,7 +88,7 @@ export function computeForfeit(stake: bigint, missedCount: number, milestoneCoun
 }
 
 /**
- * Computes keeper/settler bounty = min(floor(1% of F_i), 1 USDC)
+ * Computes keeper/settler bounty = min(floor(1% of F_i), 0.01 SOL)
  */
 export function computeSettleBounty(forfeit: bigint): bigint {
   if (forfeit <= 0n) return 0n;
@@ -282,39 +281,39 @@ export function computeCohortEconomics(input: EconomicsInput): EconomicsResult {
 }
 
 /**
- * Formats micro-USDC (BigInt) into a human-readable string like "100.00 USDC" or "12.345678"
+ * Formats lamports (BigInt) into a human-readable string like "1.00 SOL" or "0.123456789 SOL"
  * using integer string arithmetic only (no float conversion).
  */
-export function formatUsdc(
-  microUsdc: bigint,
+export function formatSol(
+  lamports: bigint,
   options: { minDecimals?: number; maxDecimals?: number; suffix?: boolean } = {}
 ): string {
-  const { minDecimals = 2, maxDecimals = 6, suffix = true } = options;
-  const isNegative = microUsdc < 0n;
-  const abs = isNegative ? -microUsdc : microUsdc;
-  const whole = abs / ONE_USDC;
-  const frac = abs % ONE_USDC;
+  const { minDecimals = 2, maxDecimals = 4, suffix = true } = options;
+  const isNegative = lamports < 0n;
+  const abs = isNegative ? -lamports : lamports;
+  const whole = abs / LAMPORTS_PER_SOL;
+  const frac = abs % LAMPORTS_PER_SOL;
 
   const wholeStr = whole.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  const fracFull = frac.toString().padStart(USDC_DECIMALS, '0');
+  const fracFull = frac.toString().padStart(SOL_DECIMALS, '0');
   const trimmedFrac = fracFull.slice(0, maxDecimals).replace(/0+$/, '');
   const paddedFrac = trimmedFrac.padEnd(minDecimals, '0');
 
   const sign = isNegative ? '-' : '';
   const numStr = paddedFrac.length > 0 ? `${sign}${wholeStr}.${paddedFrac}` : `${sign}${wholeStr}`;
-  return suffix ? `${numStr} USDC` : numStr;
+  return suffix ? `${numStr} SOL` : numStr;
 }
 
 /**
- * Parses a decimal string or integer number of whole USDC into micro-USDC BigInt without floats.
+ * Parses a decimal string or number of SOL into lamports BigInt without floats.
  */
-export function parseUsdc(value: string | number | bigint): bigint {
+export function parseSolToLamports(value: string | number | bigint): bigint {
   if (typeof value === 'bigint') return value;
   const str = String(value).trim();
-  if (!/^\d+(\.\d{1,6})?$/.test(str)) {
-    throw new Error(`Invalid USDC amount: "${str}"`);
+  if (!/^\d+(\.\d{1,9})?$/.test(str)) {
+    throw new Error(`Invalid SOL amount: "${str}"`);
   }
   const [wholePart, fracPart = ''] = str.split('.');
-  const paddedFrac = fracPart.padEnd(USDC_DECIMALS, '0').slice(0, USDC_DECIMALS);
-  return BigInt(wholePart) * ONE_USDC + BigInt(paddedFrac);
+  const paddedFrac = fracPart.padEnd(SOL_DECIMALS, '0').slice(0, SOL_DECIMALS);
+  return BigInt(wholePart) * LAMPORTS_PER_SOL + BigInt(paddedFrac);
 }

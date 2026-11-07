@@ -68,7 +68,7 @@ export function KeeperAndSecurityScreen() {
               Sweeps every few seconds and calls the exact same public{' '}
               <code className="font-mono">ChainClient.settleUser</code> &amp;{' '}
               <code className="font-mono">finalize</code> methods as any participant persona. Any persona (Alice, Bob, Carol, Dave) can settle eligible users and earn the{' '}
-              <code className="font-mono">min(1% forfeit, 1 USDC)</code> bounty.
+              <code className="font-mono">min(1% forfeit, 0.01 SOL)</code> bounty.
             </p>
           </div>
 

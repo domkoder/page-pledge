@@ -10,7 +10,7 @@ import {
   Scale,
   ShieldAlert,
 } from 'lucide-react';
-import { formatUsdc } from '@/lib/economics';
+import { formatSol } from '@/lib/economics';
 import { ScreenTab, usePagePledgeStore } from '@/lib/store/use-pagepledge-store';
 import { DemoControlDrawer } from './demo-control-drawer';
 import { CohortDetailAndSettleScreen } from './screens/cohort-detail-screen';
@@ -84,7 +84,7 @@ export function PagePledgeWorkbench() {
               >
                 {cohorts.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.title} ({c.status} • {formatUsdc(c.stake)})
+                    {c.title} ({c.status} • {formatSol(c.stake)})
                   </option>
                 ))}
               </select>
@@ -97,7 +97,7 @@ export function PagePledgeWorkbench() {
                 Acting as <strong className="capitalize">{currentPersonaObj.id}</strong>:
               </span>
               <span className="font-mono font-bold text-emerald-700 dark:text-emerald-300">
-                {formatUsdc(currentPersonaObj.usdcBalance)}
+                {formatSol(currentPersonaObj.lamportsBalance)}
               </span>
             </div>
           )}

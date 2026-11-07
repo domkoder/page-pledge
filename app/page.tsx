@@ -27,7 +27,7 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <h1 className="text-base font-black tracking-tight">PagePledge</h1>
                 <span className="rounded-md bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
-                  Solana USDC Cohort Vaults
+                  Solana Native SOL Cohort Vaults
                 </span>
               </div>
               <p className="text-xs text-neutral-500 dark:text-neutral-400">

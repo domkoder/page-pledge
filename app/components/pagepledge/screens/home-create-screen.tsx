@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import {
   AlertCircle,
   ArrowRight,
+  BookOpen,
   CheckCircle2,
   Clock,
   Layers,
@@ -15,7 +16,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { CohortAccount, CohortStatus } from '@/lib/chain';
-import { formatUsdc } from '@/lib/economics';
+import { formatSol } from '@/lib/economics';
 import {
   EXAMPLE_INTENT_CHIPS,
   IntentParseResult,
@@ -64,23 +65,42 @@ export function HomeCreateAndCohortsScreen() {
 
   const [prompt, setPrompt] = useState(EXAMPLE_INTENT_CHIPS[0].prompt);
   const [demoFastMode, setDemoFastMode] = useState(false);
+  const [useCustomMaterial, setUseCustomMaterial] = useState(false);
+  const [customMaterialText, setCustomMaterialText] = useState('');
   const [loadingParse, setLoadingParse] = useState(false);
   const [parseResult, setParseResult] = useState<IntentParseResult | null>(() => {
     const initial = parseIntentHeuristically(EXAMPLE_INTENT_CHIPS[0].prompt);
     return initial;
   });
 
-  const handleParsePrompt = async (customPrompt?: string, fastOverride?: boolean) => {
+  const handleParsePrompt = async (
+    customPrompt?: string,
+    fastOverride?: boolean,
+    customTextOverride?: string
+  ) => {
     const textToParse = customPrompt ?? prompt;
     const isFast = fastOverride ?? demoFastMode;
+    const materialText =
+      customTextOverride !== undefined
+        ? customTextOverride
+        : useCustomMaterial
+          ? customMaterialText
+          : undefined;
     setLoadingParse(true);
     try {
       const res = await fetch('/api/intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: textToParse, demoFastMode: isFast }),
+        body: JSON.stringify({
+          prompt: textToParse,
+          demoFastMode: isFast,
+          ...(materialText && materialText.trim() ? { customMaterialText: materialText } : {}),
+        }),
       });
       const data = (await res.json()) as IntentParseResult;
+      if (data.terms && typeof data.terms.stakeLamports === 'string') {
+        data.terms.stakeLamports = BigInt(data.terms.stakeLamports);
+      }
       setParseResult(data);
       if (!data.ok) {
         toast.error(data.error ?? 'Intent rejected by strict schema');
@@ -88,10 +108,7 @@ export function HomeCreateAndCohortsScreen() {
         toast.success('Parsed & validated cohort terms!');
       }
     } catch {
-      const fallback = parseIntentHeuristically(textToParse);
-      if (fallback.ok && fallback.intent) {
-        fallback.terms = buildTermsPreview(fallback.intent, isFast);
-      }
+      const fallback = parseIntentHeuristically(textToParse, materialText, isFast);
       setParseResult(fallback);
     } finally {
       setLoadingParse(false);
@@ -100,20 +117,45 @@ export function HomeCreateAndCohortsScreen() {
 
   const handleToggleFastMode = (checked: boolean) => {
     setDemoFastMode(checked);
+    const materialText = useCustomMaterial ? customMaterialText : undefined;
     if (parseResult?.ok && parseResult.intent) {
       setParseResult({
         ...parseResult,
-        terms: buildTermsPreview(parseResult.intent, checked),
+        terms: buildTermsPreview(parseResult.intent, checked, materialText),
+      });
+    }
+  };
+
+  const handleToggleCustomMaterial = (checked: boolean) => {
+    setUseCustomMaterial(checked);
+    const materialText = checked ? customMaterialText : undefined;
+    if (parseResult?.ok && parseResult.intent) {
+      setParseResult({
+        ...parseResult,
+        terms: buildTermsPreview(parseResult.intent, demoFastMode, materialText),
+      });
+    }
+  };
+
+  const handleCustomMaterialChange = (text: string) => {
+    setCustomMaterialText(text);
+    if (useCustomMaterial && parseResult?.ok && parseResult.intent) {
+      setParseResult({
+        ...parseResult,
+        terms: buildTermsPreview(parseResult.intent, demoFastMode, text),
       });
     }
   };
 
   const handleConfirmCreate = async (autoPopulateThreePersonas: boolean = false) => {
     if (!parseResult?.ok || !parseResult.intent) return;
+    const trimmedCustom = useCustomMaterial ? customMaterialText.trim() : '';
     try {
       const cohort = await createCohort({
         ...parseResult.intent,
         demoFastMode,
+        contentHash: parseResult.terms?.contentHash,
+        customMaterialText: trimmedCustom || undefined,
       });
       if (autoPopulateThreePersonas) {
         await joinCohort(cohort.id, 'alice');
@@ -134,7 +176,7 @@ export function HomeCreateAndCohortsScreen() {
   const handleQuickJoin = async (cohort: CohortAccount) => {
     try {
       await joinCohort(cohort.id, activePersona);
-      toast.success(`${activePersona} staked ${formatUsdc(cohort.stake)} and joined "${cohort.title}"`);
+      toast.success(`${activePersona} staked ${formatSol(cohort.stake)} and joined "${cohort.title}"`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not join cohort');
     }
@@ -170,16 +212,29 @@ export function HomeCreateAndCohortsScreen() {
             </p>
           </div>
 
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
-            <input
-              type="checkbox"
-              checked={demoFastMode}
-              onChange={(e) => handleToggleFastMode(e.target.checked)}
-              className="rounded accent-amber-600"
-            />
-            <Zap className="h-3.5 w-3.5" />
-            Demo Fast Mode (2m milestones / 1m grace)
-          </label>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-semibold text-indigo-800 dark:text-indigo-300">
+              <input
+                type="checkbox"
+                checked={useCustomMaterial}
+                onChange={(e) => handleToggleCustomMaterial(e.target.checked)}
+                className="rounded accent-indigo-600"
+              />
+              <BookOpen className="h-3.5 w-3.5" />
+              Paste custom study text
+            </label>
+
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
+              <input
+                type="checkbox"
+                checked={demoFastMode}
+                onChange={(e) => handleToggleFastMode(e.target.checked)}
+                className="rounded accent-amber-600"
+              />
+              <Zap className="h-3.5 w-3.5" />
+              Demo Fast Mode (2m milestones / 1m grace)
+            </label>
+          </div>
         </div>
 
         {/* Example Chips */}
@@ -208,7 +263,7 @@ export function HomeCreateAndCohortsScreen() {
             rows={2}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g., Create a 14-day Rust Ownership cohort with 4 milestones, 100 USDC stake, and max 10 participants."
+            placeholder="e.g., Create a 14-day Rust Ownership cohort with 4 milestones, 0.5 SOL stake, and max 10 participants."
             className="flex-1 rounded-xl border border-neutral-300 bg-neutral-50 p-3 text-sm focus:border-indigo-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-950"
           />
           <button
@@ -221,6 +276,25 @@ export function HomeCreateAndCohortsScreen() {
             {loadingParse ? 'Parsing...' : 'Parse & Preview Terms'}
           </button>
         </div>
+
+        {useCustomMaterial && (
+          <div className="mt-3 rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-3">
+            <label
+              htmlFor="custom-study-material"
+              className="mb-1.5 block text-xs font-bold text-indigo-900 dark:text-indigo-200"
+            >
+              Custom Study Material (SHA-256 hashed on-chain into cohort contentHash; leave empty to use the 5 built-in Rust Ownership &amp; Borrowing passages)
+            </label>
+            <textarea
+              id="custom-study-material"
+              rows={3}
+              value={customMaterialText}
+              onChange={(e) => handleCustomMaterialChange(e.target.value)}
+              placeholder="Paste custom study passage or reading notes here..."
+              className="w-full rounded-lg border border-indigo-500/30 bg-white p-2.5 text-xs focus:border-indigo-500 focus:outline-none dark:bg-neutral-950"
+            />
+          </div>
+        )}
 
         {/* Rejection / Error Card */}
         {parseResult && !parseResult.ok && (
@@ -291,22 +365,25 @@ export function HomeCreateAndCohortsScreen() {
               </div>
 
               <div className="rounded-lg border border-neutral-200/80 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
-                <div className="text-neutral-500">Protocol Fee & Settle Bounty</div>
+                <div className="text-neutral-500">Protocol Fee &amp; Settle Bounty</div>
                 <div className="mt-1 font-mono text-sm font-bold">
                   {parseResult.terms.protocolFeeFormatted}
                 </div>
                 <div className="mt-0.5 text-[11px] text-neutral-400">
-                  Caller settle bounty: min(1% forfeit, 1 USDC)
+                  Caller settle bounty: min(1% forfeit, 0.01 SOL)
                 </div>
               </div>
 
               <div className="rounded-lg border border-neutral-200/80 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
-                <div className="text-neutral-500">Grace Window & Oracle Pubkey</div>
+                <div className="text-neutral-500">Grace Window &amp; Material Hash</div>
                 <div className="mt-1 font-mono text-xs font-bold">
                   {parseResult.terms.gracePeriodFormatted}
                 </div>
                 <div className="mt-0.5 truncate font-mono text-[10px] text-neutral-400">
-                  Oracle: {parseResult.terms.oraclePubkeyHex.slice(0, 20)}...
+                  contentHash: {parseResult.terms.contentHash.slice(0, 16)}...
+                </div>
+                <div className="mt-0.5 truncate font-mono text-[10px] text-neutral-400">
+                  Oracle: {parseResult.terms.oraclePubkeyHex.slice(0, 16)}...
                 </div>
               </div>
             </div>
@@ -405,7 +482,7 @@ export function HomeCreateAndCohortsScreen() {
                     <div>
                       <div className="text-[10px] text-neutral-400">Stake</div>
                       <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                        {formatUsdc(cohort.stake)}
+                        {formatSol(cohort.stake)}
                       </div>
                     </div>
                     <div>

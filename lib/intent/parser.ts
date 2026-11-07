@@ -1,11 +1,16 @@
 import { z } from 'zod';
-import { getDemoOracleKeypair } from '../chain/attestation';
-import { ONE_USDC, PROTOCOL_FEE_BPS, computeForfeit, formatUsdc } from '../economics';
+import { getDemoOracleKeypair, hashAnswerText } from '../chain/attestation';
+import {
+  PROTOCOL_FEE_BPS,
+  computeForfeit,
+  formatSol,
+  parseSolToLamports,
+} from '../economics';
 import { MILESTONE_MATERIALS } from '../oracle/passages';
 
 /**
- * Exact `.strict()` Zod schema required by Section 6 of p1.md:
- * title, durationDays (1-90), milestoneCount (2-10), stakeUsdc (1-500), maxParticipants (2-50)
+ * Exact `.strict()` Zod schema required by ADR 0010 & ADR 0012:
+ * title, durationDays (1-90), milestoneCount (2-10), stakeSol (0.05-10), maxParticipants (2-50)
  */
 export const CohortIntentSchema = z
   .object({
@@ -16,10 +21,10 @@ export const CohortIntentSchema = z
       .int()
       .min(2, 'Milestones must be between 2 and 10')
       .max(10, 'Milestones must be between 2 and 10'),
-    stakeUsdc: z
+    stakeSol: z
       .number()
-      .min(1, 'Stake must be between 1 and 500 USDC')
-      .max(500, 'Stake must be between 1 and 500 USDC'),
+      .min(0.05, 'Stake must be between 0.05 and 10 SOL')
+      .max(10, 'Stake must be between 0.05 and 10 SOL'),
     maxParticipants: z
       .number()
       .int()
@@ -32,12 +37,14 @@ export type ParsedCohortIntent = z.infer<typeof CohortIntentSchema>;
 
 export interface IntentTermsPreview {
   intent: ParsedCohortIntent;
+  stakeLamports: bigint;
   stakeFormatted: string;
   forfeitPerMissFormatted: string;
   forfeitPerMissFraction: string;
   protocolFeeFormatted: string;
   oraclePubkeyHex: string;
   contentHash: string;
+  isCustomMaterial?: boolean;
   gracePeriodFormatted: string;
   deadlinesPreview: string[];
   validationBadges: { label: string; valid: boolean }[];
@@ -62,21 +69,21 @@ export interface ExampleIntentChip {
 export const EXAMPLE_INTENT_CHIPS: ExampleIntentChip[] = [
   {
     id: 'rust-5m',
-    label: 'Rust Ownership (5 milestones, 100 USDC)',
+    label: 'Rust Ownership (5 milestones, 0.5 SOL)',
     prompt:
-      'Create a 14-day Rust Ownership & Borrowing study cohort with 5 milestones, 100 USDC stake, and up to 12 participants.',
+      'Create a 14-day Rust Ownership & Borrowing study cohort with 5 milestones, 0.5 SOL stake, and up to 12 participants.',
   },
   {
     id: 'fast-sprint',
-    label: 'Weekend Borrow Checker Sprint (3 milestones, 50 USDC)',
+    label: 'Weekend Borrow Checker Sprint (3 milestones, 0.1 SOL)',
     prompt:
-      'Run a 3-day Weekend Borrow Checker Sprint over 3 milestones with 50 USDC stake for 6 participants.',
+      'Run a 3-day Weekend Borrow Checker Sprint over 3 milestones with 0.1 SOL stake for 6 participants.',
   },
   {
     id: 'deep-dive',
-    label: 'Systems Programming Mastery (4 milestones, 250 USDC)',
+    label: 'Systems Programming Mastery (4 milestones, 1.0 SOL)',
     prompt:
-      'Launch a 28-day Systems Programming Mastery cohort with 4 milestones, 250 USDC stake, max 20 participants.',
+      'Launch a 28-day Systems Programming Mastery cohort with 4 milestones, 1.0 SOL stake, max 20 participants.',
   },
   {
     id: 'unsupported-leverage',
@@ -91,7 +98,7 @@ const UNSUPPORTED_FEATURE_PATTERNS: { pattern: RegExp; reason: string }[] = [
   {
     pattern: /\b(\d+x\s*leverage|leverage|margin|perp|shorting)\b/i,
     reason:
-      'Unsupported feature requested: Leverage / margin trading is prohibited. PagePledge vaults hold 1:1 principal in USDC.',
+      'Unsupported feature requested: Leverage / margin trading is prohibited. PagePledge vaults hold 1:1 principal in Native SOL lamports.',
   },
   {
     pattern: /\b(custom\s+fee|0%\s*(protocol\s*)?fee|zero\s+fee|change\s+fee|fee\s+to\s+\d+%)/i,
@@ -122,7 +129,11 @@ export function detectUnsupportedIntent(prompt: string): string | null {
 /**
  * Deterministic heuristic parser for natural-language cohort descriptions.
  */
-export function parseIntentHeuristically(prompt: string): IntentParseResult {
+export function parseIntentHeuristically(
+  prompt: string,
+  customMaterialText?: string,
+  demoFastMode: boolean = false
+): IntentParseResult {
   const trimmed = prompt.trim();
   if (trimmed.length < 5) {
     return {
@@ -159,14 +170,13 @@ export function parseIntentHeuristically(prompt: string): IntentParseResult {
     milestoneCount = parseInt(milestoneMatch[1], 10);
   }
 
-  // Extract stakeUsdc (e.g. "100 USDC", "$100 stake", "stake of 50 USDC")
-  let stakeUsdc = 100;
-  const usdcMatch =
-    trimmed.match(/(\d+(?:\.\d+)?)\s*USDC/i) ??
-    trimmed.match(/\$\s*(\d+(?:\.\d+)?)/i) ??
+  // Extract stakeSol (e.g. "0.5 SOL", "1.0 SOL stake", "stake of 0.1 SOL")
+  let stakeSol = 0.5;
+  const solMatch =
+    trimmed.match(/(\d+(?:\.\d+)?)\s*SOL\b/i) ??
     trimmed.match(/stake\s+(?:of\s+)?(\d+(?:\.\d+)?)/i);
-  if (usdcMatch) {
-    stakeUsdc = Math.round(parseFloat(usdcMatch[1]));
+  if (solMatch) {
+    stakeSol = Number(parseFloat(solMatch[1]).toFixed(4));
   }
 
   // Extract maxParticipants (e.g. "12 participants", "max 20", "up to 10 people/students/peers")
@@ -198,7 +208,7 @@ export function parseIntentHeuristically(prompt: string): IntentParseResult {
     title,
     durationDays,
     milestoneCount,
-    stakeUsdc,
+    stakeSol,
     maxParticipants,
   });
 
@@ -215,18 +225,23 @@ export function parseIntentHeuristically(prompt: string): IntentParseResult {
     ok: true,
     parserMode: 'heuristic',
     intent: parsed.data,
-    terms: buildTermsPreview(parsed.data, false),
+    terms: buildTermsPreview(parsed.data, demoFastMode, customMaterialText),
   };
 }
 
 export function buildTermsPreview(
   intent: ParsedCohortIntent,
-  demoFastMode: boolean = false
+  demoFastMode: boolean = false,
+  customMaterialText?: string
 ): IntentTermsPreview {
-  const stakeMicro = BigInt(Math.round(intent.stakeUsdc)) * ONE_USDC;
-  const forfeitPerMiss = computeForfeit(stakeMicro, 1, intent.milestoneCount);
+  const stakeLamports = parseSolToLamports(intent.stakeSol);
+  const forfeitPerMiss = computeForfeit(stakeLamports, 1, intent.milestoneCount);
   const oraclePubkeyHex = getDemoOracleKeypair().publicKeyHex;
-  const contentHash = MILESTONE_MATERIALS[0].contentHash;
+  const trimmedCustom = customMaterialText?.trim();
+  const isCustomMaterial = Boolean(trimmedCustom && trimmedCustom.length > 0);
+  const contentHash = isCustomMaterial
+    ? hashAnswerText(trimmedCustom!)
+    : MILESTONE_MATERIALS[0].contentHash;
 
   const deadlinesPreview = Array.from({ length: intent.milestoneCount }, (_, idx) => {
     if (demoFastMode) {
@@ -241,17 +256,22 @@ export function buildTermsPreview(
 
   return {
     intent,
-    stakeFormatted: formatUsdc(stakeMicro),
-    forfeitPerMissFormatted: formatUsdc(forfeitPerMiss),
-    forfeitPerMissFraction: `1/${intent.milestoneCount} of stake (${formatUsdc(forfeitPerMiss)})`,
+    stakeLamports,
+    stakeFormatted: `${formatSol(stakeLamports)} (${stakeLamports.toLocaleString()} lamports)`,
+    forfeitPerMissFormatted: formatSol(forfeitPerMiss),
+    forfeitPerMissFraction: `1/${intent.milestoneCount} of stake (${formatSol(forfeitPerMiss)})`,
     protocolFeeFormatted: `${Number(PROTOCOL_FEE_BPS) / 100}% (${PROTOCOL_FEE_BPS} bps of net forfeits, fixed)`,
     oraclePubkeyHex,
     contentHash,
+    isCustomMaterial,
     gracePeriodFormatted: demoFastMode ? '1 minute (Demo Fast Mode)' : '24 hours (86,400s)',
     deadlinesPreview,
     validationBadges: [
       { label: 'Strict Zod Schema Validated', valid: true },
-      { label: `Stake Bounds (1–500 USDC): ${intent.stakeUsdc} USDC`, valid: true },
+      {
+        label: `Stake Bounds (0.05–10 SOL): ${intent.stakeSol} SOL (${stakeLamports.toLocaleString()} lamports)`,
+        valid: true,
+      },
       { label: `Milestones (2–10): ${intent.milestoneCount}`, valid: true },
       { label: `Participants (2–50): max ${intent.maxParticipants}`, valid: true },
       { label: 'Fixed 200 bps Fee (No Custom/Creator Cut)', valid: true },
@@ -261,7 +281,8 @@ export function buildTermsPreview(
 
 export async function parseCohortIntent(
   prompt: string,
-  demoFastMode: boolean = false
+  demoFastMode: boolean = false,
+  customMaterialText?: string
 ): Promise<IntentParseResult> {
   // Always enforce unsupported feature rejection before calling any LLM
   const unsupported = detectUnsupportedIntent(prompt);
@@ -279,7 +300,7 @@ export async function parseCohortIntent(
     try {
       const systemInstruction = [
         'Extract cohort parameters from the user prompt into JSON with ONLY these 5 keys:',
-        'title (string), durationDays (int 1..90), milestoneCount (int 2..10), stakeUsdc (number 1..500), maxParticipants (int 2..50).',
+        'title (string), durationDays (int 1..90), milestoneCount (int 2..10), stakeSol (number 0.05..10), maxParticipants (int 2..50).',
         'Never output Solana instructions, accounts, or extra keys.',
       ].join(' ');
 
@@ -311,7 +332,7 @@ export async function parseCohortIntent(
               ok: true,
               parserMode: 'llm',
               intent: validated.data,
-              terms: buildTermsPreview(validated.data, demoFastMode),
+              terms: buildTermsPreview(validated.data, demoFastMode, customMaterialText),
             };
           }
         }
@@ -321,9 +342,5 @@ export async function parseCohortIntent(
     }
   }
 
-  const heuristicResult = parseIntentHeuristically(prompt);
-  if (heuristicResult.ok && heuristicResult.intent) {
-    heuristicResult.terms = buildTermsPreview(heuristicResult.intent, demoFastMode);
-  }
-  return heuristicResult;
+  return parseIntentHeuristically(prompt, customMaterialText, demoFastMode);
 }

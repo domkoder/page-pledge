@@ -1,14 +1,15 @@
 import {
   BPS_DENOMINATOR,
   EconomicsResult,
+  LAMPORTS_PER_SOL,
   MilestoneOutcome,
-  ONE_USDC,
   computeCohortEconomics,
   computeForfeit,
   computeLenderLoss,
   computeSettleBounty,
   computeSimulatedYield,
-  formatUsdc,
+  formatSol,
+  parseSolToLamports,
 } from '../economics';
 import {
   getDemoOracleKeypair,
@@ -37,7 +38,7 @@ export const DEFAULT_CONTENT_HASH =
 export const MAX_COMMIT_ATTEMPTS = 3;
 
 interface MockChainState {
-  version: 1;
+  version: 2;
   now: number; // simulated unix timestamp (seconds)
   yieldAprBps: bigint; // default 500n (5.00% APR)
   lenderLossBps: bigint; // default 0n (0.00% loss)
@@ -74,42 +75,42 @@ export function createInitialPersonas(): Record<string, PersonaAccount> {
       name: 'Alice (Finisher)',
       role: 'Diligent Participant',
       pubkey: 'A1ice11111111111111111111111111111111111111',
-      usdcBalance: 1_000n * ONE_USDC,
+      lamportsBalance: 10n * LAMPORTS_PER_SOL,
     },
     bob: {
       id: 'bob',
       name: 'Bob (Slacker)',
       role: 'Partial Dropout',
       pubkey: 'B0b1111111111111111111111111111111111111111',
-      usdcBalance: 1_000n * ONE_USDC,
+      lamportsBalance: 10n * LAMPORTS_PER_SOL,
     },
     carol: {
       id: 'carol',
       name: 'Carol (Unattested)',
       role: 'Commits But Unattested',
       pubkey: 'Car0111111111111111111111111111111111111111',
-      usdcBalance: 1_000n * ONE_USDC,
+      lamportsBalance: 10n * LAMPORTS_PER_SOL,
     },
     dave: {
       id: 'dave',
       name: 'Dave (Latecomer)',
       role: 'Extra Participant',
       pubkey: 'Dav3111111111111111111111111111111111111111',
-      usdcBalance: 1_000n * ONE_USDC,
+      lamportsBalance: 10n * LAMPORTS_PER_SOL,
     },
     keeper: {
       id: 'keeper',
       name: 'Keeper Bot',
       role: 'Permissionless Sweeper',
       pubkey: 'K33p3r1111111111111111111111111111111111111',
-      usdcBalance: 50n * ONE_USDC,
+      lamportsBalance: 10n * LAMPORTS_PER_SOL,
     },
     creator: {
       id: 'creator',
       name: 'Creator (Host)',
       role: 'Cohort Organizer',
       pubkey: 'Cr3at0r111111111111111111111111111111111111',
-      usdcBalance: 2_500n * ONE_USDC,
+      lamportsBalance: 10n * LAMPORTS_PER_SOL,
     },
   };
 }
@@ -154,7 +155,7 @@ export class MockChain implements ChainClient {
         const raw = window.localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = deserializeWithBigInt(raw);
-          if (parsed && parsed.version === 1) {
+          if (parsed && parsed.version === 2) {
             return parsed;
           }
         }
@@ -167,7 +168,7 @@ export class MockChain implements ChainClient {
 
   private buildFreshState(): MockChainState {
     const fresh: MockChainState = {
-      version: 1,
+      version: 2,
       now: this.initialNow,
       yieldAprBps: 500n, // 5.00% default APR
       lenderLossBps: 0n,
@@ -181,7 +182,7 @@ export class MockChain implements ChainClient {
       // Seed one default Rust Ownership cohort so the UI is populated out of the box
       const oraclePubkeyHex = getDemoOracleKeypair().publicKeyHex;
       const cohortId = 'rust-ownership-101';
-      const stake = 100n * ONE_USDC;
+      const stake = 500_000_000n; // 0.5 SOL
       const milestoneCount = 3;
       const interval = 7 * 86_400; // 7 days per milestone
       const deadlines = [
@@ -207,9 +208,9 @@ export class MockChain implements ChainClient {
         claimed: false,
       });
 
-      fresh.personas.alice.usdcBalance -= stake;
-      fresh.personas.bob.usdcBalance -= stake;
-      fresh.personas.carol.usdcBalance -= stake;
+      fresh.personas.alice.lamportsBalance -= stake;
+      fresh.personas.bob.lamportsBalance -= stake;
+      fresh.personas.carol.lamportsBalance -= stake;
 
       fresh.cohorts[cohortId] = {
         id: cohortId,
@@ -229,6 +230,7 @@ export class MockChain implements ChainClient {
         clusterId: DEFAULT_CLUSTER_ID,
         programId: DEFAULT_PROGRAM_ID,
         startedAt: this.initialNow,
+        lastOracleTs: 0,
         participants: {
           alice: makeParticipant('alice'),
           bob: makeParticipant('bob'),
@@ -338,12 +340,12 @@ export class MockChain implements ChainClient {
   }
 
   /**
-   * Per-user, per-milestone outcome (Section 3 of p1.md):
+   * Per-user, per-milestone outcome (ADR 0011):
    * After deadline[i] + grace:
-   * - no commit = MISSED
-   * - committed but failed grade = MISSED
-   * - committed but never graded = NEUTRAL (no slash, no reward eligibility)
    * - passed = PASSED
+   * - no on-time commit = MISSED
+   * - committed but failed grade (< 75) or oracle active at/after commitTimestamp = MISSED
+   * - committed on time and zero cohort oracle activity after commitTimestamp (lastOracleTs < commitTimestamp) = NEUTRAL
    */
   public getMilestoneOutcome(
     cohort: CohortAccount,
@@ -369,7 +371,12 @@ export class MockChain implements ChainClient {
     }
 
     // Window has closed (now > deadline[i] + grace)
-    if (record.attemptCount === 0 || !record.answerHash) {
+    if (
+      record.attemptCount === 0 ||
+      !record.answerHash ||
+      record.commitTimestamp <= 0 ||
+      record.commitTimestamp > deadline
+    ) {
       return 'MISSED';
     }
 
@@ -377,7 +384,46 @@ export class MockChain implements ChainClient {
       return 'MISSED';
     }
 
-    return 'NEUTRAL';
+    const lastOracleTs = cohort.lastOracleTs ?? 0;
+    if (lastOracleTs < record.commitTimestamp) {
+      return 'NEUTRAL';
+    }
+
+    return 'MISSED';
+  }
+
+  private tallyParticipantOutcomes(
+    cohort: CohortAccount,
+    user: string
+  ): { missedCount: number; passedCount: number; eligibleForReward: boolean } {
+    let missedCount = 0;
+    let passedCount = 0;
+    for (let i = 0; i < cohort.milestoneCount; i++) {
+      const outcome = this.getMilestoneOutcome(cohort, user, i, this.state.now);
+      if (outcome === 'MISSED') missedCount++;
+      if (outcome === 'PASSED') passedCount++;
+    }
+    return {
+      missedCount,
+      passedCount,
+      eligibleForReward: passedCount === cohort.milestoneCount && missedCount === 0,
+    };
+  }
+
+  private computeCohortYieldAndLoss(cohort: CohortAccount): {
+    simulatedYield: bigint;
+    lenderLoss: bigint;
+  } {
+    const elapsedSeconds = BigInt(
+      Math.max(0, this.state.now - (cohort.startedAt ?? cohort.epoch))
+    );
+    const simulatedYield = computeSimulatedYield(
+      cohort.totalDeposits,
+      this.state.yieldAprBps,
+      elapsedSeconds
+    );
+    const lenderLoss = computeLenderLoss(cohort.totalDeposits, this.state.lenderLossBps);
+    return { simulatedYield, lenderLoss };
   }
 
   /**
@@ -393,30 +439,18 @@ export class MockChain implements ChainClient {
     }
 
     const participantsList = Object.values(cohort.participants).map((p) => {
-      let missedCount = 0;
-      let passedCount = 0;
-      for (let i = 0; i < cohort.milestoneCount; i++) {
-        const outcome = this.getMilestoneOutcome(cohort, p.user, i, this.state.now);
-        if (outcome === 'MISSED') missedCount++;
-        if (outcome === 'PASSED') passedCount++;
-      }
-      const eligible = passedCount === cohort.milestoneCount && missedCount === 0;
+      const { missedCount, eligibleForReward } = this.tallyParticipantOutcomes(cohort, p.user);
       return {
         user: p.user,
         stake: p.stake,
         missedCount: p.settled && p.missedCount !== undefined ? p.missedCount : missedCount,
-        eligible: p.settled && p.eligibleForReward !== undefined ? p.eligibleForReward : eligible,
+        eligible:
+          p.settled && p.eligibleForReward !== undefined ? p.eligibleForReward : eligibleForReward,
         bountyPaid: p.settled ? p.bountyPaid : undefined,
       };
     });
 
-    const elapsedSeconds = BigInt(Math.max(0, this.state.now - (cohort.startedAt ?? cohort.epoch)));
-    const simulatedYield = computeSimulatedYield(
-      cohort.totalDeposits,
-      this.state.yieldAprBps,
-      elapsedSeconds
-    );
-    const lenderLoss = computeLenderLoss(cohort.totalDeposits, this.state.lenderLossBps);
+    const { simulatedYield, lenderLoss } = this.computeCohortYieldAndLoss(cohort);
 
     return computeCohortEconomics({
       milestoneCount: cohort.milestoneCount,
@@ -433,7 +467,7 @@ export class MockChain implements ChainClient {
         name: user,
         role: 'Participant',
         pubkey: `${user}_pubkey`,
-        usdcBalance: 1_000n * ONE_USDC,
+        lamportsBalance: 10n * LAMPORTS_PER_SOL,
       };
     }
     return this.state.personas[user];
@@ -454,9 +488,9 @@ export class MockChain implements ChainClient {
     }
 
     const stake =
-      intent.stakeMicroUsdc !== undefined
-        ? intent.stakeMicroUsdc
-        : BigInt(Math.round(intent.stakeUsdc * 1_000_000));
+      intent.stakeLamports !== undefined
+        ? intent.stakeLamports
+        : parseSolToLamports(intent.stakeSol);
 
     const slugBase =
       intent.id ??
@@ -483,13 +517,17 @@ export class MockChain implements ChainClient {
     );
 
     const oraclePubkeyHex = getDemoOracleKeypair().publicKeyHex;
+    const trimmedCustomMaterial = intent.customMaterialText?.trim();
+    const resolvedContentHash =
+      intent.contentHash ??
+      (trimmedCustomMaterial ? hashAnswerText(trimmedCustomMaterial) : DEFAULT_CONTENT_HASH);
 
     const cohort: CohortAccount = {
       id,
       title: intent.title,
       description:
         intent.description ??
-        `${milestoneCount}-milestone study cohort with ${formatUsdc(stake)} stake.`,
+        `${milestoneCount}-milestone study cohort with ${formatSol(stake)} stake.`,
       creator,
       epoch,
       status: 'Open',
@@ -498,10 +536,12 @@ export class MockChain implements ChainClient {
       maxParticipants: intent.maxParticipants,
       deadlines,
       gracePeriodSeconds,
-      contentHash: intent.contentHash ?? DEFAULT_CONTENT_HASH,
+      contentHash: resolvedContentHash,
+      customMaterialText: trimmedCustomMaterial || undefined,
       oraclePubkeyHex,
       clusterId: DEFAULT_CLUSTER_ID,
       programId: DEFAULT_PROGRAM_ID,
+      lastOracleTs: 0,
       participants: {},
       vaultBalance: 0n,
       totalDeposits: 0n,
@@ -515,13 +555,15 @@ export class MockChain implements ChainClient {
       caller: creator,
       cohortId: id,
       status: 'SUCCESS',
-      summary: `Created cohort "${cohort.title}" (${milestoneCount} milestones, stake ${formatUsdc(stake)})`,
+      summary: `Created cohort "${cohort.title}" (${milestoneCount} milestones, stake ${formatSol(stake)})`,
       details: {
         cohortId: id,
-        stake: formatUsdc(stake),
+        stake: formatSol(stake),
+        stakeLamports: stake.toString(),
         milestoneCount,
         maxParticipants: intent.maxParticipants,
         gracePeriodSeconds,
+        contentHash: resolvedContentHash,
       },
     });
 
@@ -561,17 +603,17 @@ export class MockChain implements ChainClient {
     }
 
     const persona = this.ensurePersona(user);
-    if (persona.usdcBalance < cohort.stake) {
+    if (persona.lamportsBalance < cohort.stake) {
       this.fail(
         'join',
         user,
         'InsufficientBalance',
-        `User "${user}" has ${formatUsdc(persona.usdcBalance)}, needs ${formatUsdc(cohort.stake)}.`,
+        `User "${user}" has ${formatSol(persona.lamportsBalance)}, needs ${formatSol(cohort.stake)}.`,
         cohortId
       );
     }
 
-    persona.usdcBalance -= cohort.stake;
+    persona.lamportsBalance -= cohort.stake;
     cohort.vaultBalance += cohort.stake;
     cohort.totalDeposits += cohort.stake;
 
@@ -596,11 +638,11 @@ export class MockChain implements ChainClient {
       caller: user,
       cohortId,
       status: 'SUCCESS',
-      summary: `${user} joined "${cohort.title}" and staked ${formatUsdc(cohort.stake)}`,
+      summary: `${user} joined "${cohort.title}" and staked ${formatSol(cohort.stake)}`,
       details: {
         user,
-        stake: formatUsdc(cohort.stake),
-        vaultBalance: formatUsdc(cohort.vaultBalance),
+        stake: formatSol(cohort.stake),
+        vaultBalance: formatSol(cohort.vaultBalance),
         participantCount: Object.keys(cohort.participants).length,
       },
     });
@@ -630,6 +672,15 @@ export class MockChain implements ChainClient {
         caller,
         'MinParticipantsNotMet',
         `At least 2 participants required to start cohort (currently ${participantCount}).`,
+        cohortId
+      );
+    }
+    if (caller !== cohort.creator && !cohort.participants[caller]) {
+      this.fail(
+        'start_cohort',
+        caller,
+        'WrongUser',
+        `Caller "${caller}" must be the cohort creator or a joined participant to start cohort "${cohortId}".`,
         cohortId
       );
     }
@@ -886,6 +937,7 @@ export class MockChain implements ChainClient {
     record.completedTimestamp = this.state.now;
     record.attestationSignatureHex = attestation.signatureHex;
     participant.completedBitmap |= 1 << milestoneIdx;
+    cohort.lastOracleTs = this.state.now;
 
     const tx = this.logTx({
       instruction: 'complete_milestone',
@@ -896,6 +948,7 @@ export class MockChain implements ChainClient {
       details: {
         milestoneIdx,
         score: attestation.score,
+        lastOracleTs: cohort.lastOracleTs,
         completedBitmap: `0b${participant.completedBitmap.toString(2).padStart(cohort.milestoneCount, '0')}`,
       },
     });
@@ -947,15 +1000,7 @@ export class MockChain implements ChainClient {
       );
     }
 
-    let missedCount = 0;
-    let passedCount = 0;
-    for (let i = 0; i < cohort.milestoneCount; i++) {
-      const outcome = this.getMilestoneOutcome(cohort, targetUser, i, this.state.now);
-      if (outcome === 'MISSED') missedCount++;
-      if (outcome === 'PASSED') passedCount++;
-    }
-
-    const eligibleForReward = passedCount === cohort.milestoneCount && missedCount === 0;
+    const { missedCount, eligibleForReward } = this.tallyParticipantOutcomes(cohort, targetUser);
     const forfeit = computeForfeit(participant.stake, missedCount, cohort.milestoneCount);
     const bounty = computeSettleBounty(forfeit);
     const netForfeit = forfeit - bounty;
@@ -971,7 +1016,7 @@ export class MockChain implements ChainClient {
 
     // Pay bounty out of the forfeit at settle time to the caller
     const callerPersona = this.ensurePersona(caller);
-    callerPersona.usdcBalance += bounty;
+    callerPersona.lamportsBalance += bounty;
     cohort.vaultBalance -= bounty;
     cohort.totalBountiesPaid += bounty;
 
@@ -980,14 +1025,14 @@ export class MockChain implements ChainClient {
       caller,
       cohortId,
       status: 'SUCCESS',
-      summary: `${caller} settled ${targetUser}: ${missedCount}/${cohort.milestoneCount} missed, forfeit ${formatUsdc(forfeit)}, caller bounty ${formatUsdc(bounty)}`,
+      summary: `${caller} settled ${targetUser}: ${missedCount}/${cohort.milestoneCount} missed, forfeit ${formatSol(forfeit)}, caller bounty ${formatSol(bounty)}`,
       details: {
         targetUser,
         settledBy: caller,
         missedCount,
         eligibleForReward,
-        forfeit: formatUsdc(forfeit),
-        bounty: formatUsdc(bounty),
+        forfeit: formatSol(forfeit),
+        bounty: formatSol(bounty),
       },
     });
 
@@ -1028,15 +1073,7 @@ export class MockChain implements ChainClient {
       );
     }
 
-    const elapsedSeconds = BigInt(
-      Math.max(0, this.state.now - (cohort.startedAt ?? cohort.epoch))
-    );
-    const simulatedYield = computeSimulatedYield(
-      cohort.totalDeposits,
-      this.state.yieldAprBps,
-      elapsedSeconds
-    );
-    const lenderLoss = computeLenderLoss(cohort.totalDeposits, this.state.lenderLossBps);
+    const { simulatedYield, lenderLoss } = this.computeCohortYieldAndLoss(cohort);
 
     const econ = computeCohortEconomics({
       milestoneCount: cohort.milestoneCount,
@@ -1068,13 +1105,13 @@ export class MockChain implements ChainClient {
       caller,
       cohortId,
       status: 'SUCCESS',
-      summary: `Finalized "${cohort.title}": pool ${formatUsdc(econ.pool)}, fee ${formatUsdc(econ.fee)}, dust ${formatUsdc(econ.dust)}`,
+      summary: `Finalized "${cohort.title}": pool ${formatSol(econ.pool)}, fee ${formatSol(econ.fee)}, dust ${formatSol(econ.dust)}`,
       details: {
-        assets: formatUsdc(econ.assets),
-        liabilities: formatUsdc(econ.liabilities),
-        pool: formatUsdc(econ.pool),
-        fee: formatUsdc(econ.fee),
-        dust: formatUsdc(econ.dust),
+        assets: formatSol(econ.assets),
+        liabilities: formatSol(econ.liabilities),
+        pool: formatSol(econ.pool),
+        fee: formatSol(econ.fee),
+        dust: formatSol(econ.dust),
         invariantHolds: econ.invariantHolds,
       },
     });
@@ -1125,7 +1162,7 @@ export class MockChain implements ChainClient {
     participant.claimedAt = this.state.now;
 
     const persona = this.ensurePersona(user);
-    persona.usdcBalance += payout;
+    persona.lamportsBalance += payout;
     cohort.vaultBalance = cohort.vaultBalance >= payout ? cohort.vaultBalance - payout : 0n;
 
     const tx = this.logTx({
@@ -1133,11 +1170,11 @@ export class MockChain implements ChainClient {
       caller: user,
       cohortId,
       status: 'SUCCESS',
-      summary: `${user} claimed ${formatUsdc(payout)} from "${cohort.title}"`,
+      summary: `${user} claimed ${formatSol(payout)} from "${cohort.title}"`,
       details: {
         user,
-        payout: formatUsdc(payout),
-        newWalletBalance: formatUsdc(persona.usdcBalance),
+        payout: formatSol(payout),
+        newWalletBalance: formatSol(persona.lamportsBalance),
       },
     });
 
@@ -1147,25 +1184,25 @@ export class MockChain implements ChainClient {
 
   public async faucet(
     user: string,
-    amountMicroUsdc: bigint = 500n * ONE_USDC
+    amountLamports: bigint = 5n * LAMPORTS_PER_SOL
   ): Promise<TxResult<{ newBalance: bigint }>> {
     const persona = this.ensurePersona(user);
-    persona.usdcBalance += amountMicroUsdc;
+    persona.lamportsBalance += amountLamports;
 
     const tx = this.logTx({
       instruction: 'faucet',
       caller: user,
       status: 'SUCCESS',
-      summary: `Minted ${formatUsdc(amountMicroUsdc)} test USDC to ${persona.name}`,
+      summary: `Airdropped ${formatSol(amountLamports)} test SOL to ${persona.name}`,
       details: {
         user,
-        minted: formatUsdc(amountMicroUsdc),
-        newBalance: formatUsdc(persona.usdcBalance),
+        airdropped: formatSol(amountLamports),
+        newBalance: formatSol(persona.lamportsBalance),
       },
     });
 
     this.notify();
-    return { tx, data: { newBalance: persona.usdcBalance } };
+    return { tx, data: { newBalance: persona.lamportsBalance } };
   }
 
   public advanceClock(deltaSeconds: number): void {

@@ -14,7 +14,7 @@ import {
   UserPlus,
   Play,
 } from 'lucide-react';
-import { MilestoneOutcome, computeForfeit, computeSettleBounty, formatUsdc } from '@/lib/economics';
+import { MilestoneOutcome, computeForfeit, computeSettleBounty, formatSol } from '@/lib/economics';
 import { usePagePledgeStore } from '@/lib/store/use-pagepledge-store';
 
 function outcomeChipStyle(outcome: MilestoneOutcome): string {
@@ -93,7 +93,7 @@ export function CohortDetailAndSettleScreen() {
   const handleClaim = async (user: string) => {
     try {
       const payout = await claimPayout(cohort.id, user);
-      toast.success(`${user} claimed ${formatUsdc(payout)}!`);
+      toast.success(`${user} claimed ${formatSol(payout)}!`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Claim failed');
     }
@@ -136,7 +136,7 @@ export function CohortDetailAndSettleScreen() {
                 className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
               >
                 <UserPlus className="h-4 w-4" />
-                Join as {activePersona} ({formatUsdc(cohort.stake)})
+                Join as {activePersona} ({formatSol(cohort.stake)})
               </button>
             )}
             {cohort.status === 'Open' && participants.length >= 2 && (
@@ -230,7 +230,7 @@ export function CohortDetailAndSettleScreen() {
             </h3>
             <p className="text-xs text-neutral-500">
               Anyone can call <code className="font-mono">settle_user</code> after the final milestone grace window closes and earn{' '}
-              <code className="font-mono">min(1% of forfeit, 1 USDC)</code>.
+              <code className="font-mono">min(1% of forfeit, 0.01 SOL)</code>.
             </p>
           </div>
 
@@ -285,7 +285,7 @@ export function CohortDetailAndSettleScreen() {
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-3 font-mono">{formatUsdc(p.stake)}</td>
+                    <td className="px-3 py-3 font-mono">{formatSol(p.stake)}</td>
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap gap-1.5">
                         {outcomes.map((outcome, mIdx) => (
@@ -305,14 +305,14 @@ export function CohortDetailAndSettleScreen() {
                     </td>
                     <td className="px-3 py-3 font-mono">
                       <div className="text-rose-600 dark:text-rose-400">
-                        -{formatUsdc(econRow?.forfeit ?? estForfeit)}
+                        -{formatSol(econRow?.forfeit ?? estForfeit, { maxDecimals: 9 })}
                       </div>
                       <div className="text-[10px] text-amber-600 dark:text-amber-400">
-                        Bounty: {formatUsdc(econRow?.bounty ?? estBounty)}
+                        Bounty: {formatSol(econRow?.bounty ?? estBounty, { maxDecimals: 9 })}
                       </div>
                     </td>
                     <td className="px-3 py-3 font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                      {formatUsdc(econRow?.payout ?? p.stake)}
+                      {formatSol(econRow?.payout ?? p.stake, { maxDecimals: 9 })}
                       {econRow?.eligible && (
                         <span className="ml-1 rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] text-emerald-700 dark:text-emerald-300">
                           +Pool
@@ -331,7 +331,7 @@ export function CohortDetailAndSettleScreen() {
                                 : 'border border-neutral-300 bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
                             }`}
                           >
-                            Settle (+{formatUsdc(estBounty, { suffix: false })} USDC)
+                            Settle (+{formatSol(estBounty, { maxDecimals: 9 })})
                           </button>
                         ) : (
                           <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-1 font-mono text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
@@ -378,7 +378,7 @@ export function CohortDetailAndSettleScreen() {
                 Protocol Money-Flow & Live Solvency Verification
               </h3>
               <p className="text-xs text-neutral-500">
-                All math uses integer base units (6-decimal USDC <code className="font-mono">BigInt</code>). Zero floating-point operations.
+                All math uses integer base units (9-decimal SOL lamports <code className="font-mono">BigInt</code>). Zero floating-point operations.
               </p>
             </div>
           </div>
@@ -401,17 +401,17 @@ export function CohortDetailAndSettleScreen() {
             Protocol Solvency Invariant: sum(payouts) + fee + dust === A (Assets at Finalize)
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm font-bold text-emerald-400">
-            <span>{formatUsdc(econ.totalPayouts)} (Payouts)</span>
+            <span>{formatSol(econ.totalPayouts, { maxDecimals: 9 })} (Payouts)</span>
             <span>+</span>
-            <span>{formatUsdc(econ.fee)} (Fee 200bps)</span>
+            <span>{formatSol(econ.fee, { maxDecimals: 9 })} (Fee 200bps)</span>
             <span>+</span>
             <span>
-              {formatUsdc(econ.dust, { maxDecimals: 6 })} (Dust
+              {formatSol(econ.dust, { maxDecimals: 9 })} (Dust
               {econ.nobodyEligible ? ' + Unclaimed Yield Sweep' : ''})
             </span>
             <span>===</span>
             <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-emerald-300">
-              {formatUsdc(econ.assets, { maxDecimals: 6 })} (Assets A)
+              {formatSol(econ.assets, { maxDecimals: 9 })} (Assets A)
             </span>
           </div>
         </div>
@@ -420,30 +420,30 @@ export function CohortDetailAndSettleScreen() {
           <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
             <div className="text-[11px] text-neutral-500">1. Deposits sum(S_i)</div>
             <div className="mt-1 font-mono text-sm font-bold">
-              {formatUsdc(econ.totalDeposits)}
+              {formatSol(econ.totalDeposits)}
             </div>
             <div className="mt-0.5 text-[10px] text-neutral-400">
-              Liabilities U: {formatUsdc(econ.liabilities)}
+              Liabilities U: {formatSol(econ.liabilities, { maxDecimals: 9 })}
             </div>
           </div>
 
           <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
             <div className="text-[11px] text-neutral-500">2. Gross Forfeits sum(F_i)</div>
             <div className="mt-1 font-mono text-sm font-bold text-rose-600 dark:text-rose-400">
-              {formatUsdc(econ.totalForfeits)}
+              {formatSol(econ.totalForfeits, { maxDecimals: 9 })}
             </div>
             <div className="mt-0.5 text-[10px] text-neutral-400">
-              Bounties B: {formatUsdc(econ.totalBounties)}
+              Bounties B: {formatSol(econ.totalBounties, { maxDecimals: 9 })}
             </div>
           </div>
 
           <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
             <div className="text-[11px] text-neutral-500">3. Net Forfeits sum(N_i)</div>
             <div className="mt-1 font-mono text-sm font-bold">
-              {formatUsdc(econ.totalNetForfeits)}
+              {formatSol(econ.totalNetForfeits, { maxDecimals: 9 })}
             </div>
             <div className="mt-0.5 text-[10px] text-neutral-400">
-              Protocol Fee (2%): {formatUsdc(econ.fee)}
+              Protocol Fee (2%): {formatSol(econ.fee, { maxDecimals: 9 })}
             </div>
           </div>
 
@@ -452,7 +452,7 @@ export function CohortDetailAndSettleScreen() {
               4. Simulated Yield Reserve
             </div>
             <div className="mt-1 font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400">
-              +{formatUsdc(econ.yieldAmount, { maxDecimals: 6 })}
+              +{formatSol(econ.yieldAmount, { maxDecimals: 9 })}
             </div>
             <div className="mt-0.5 text-[10px] text-amber-600 dark:text-amber-400">
               Sim APR ({Number(yieldAprBps) / 100}%) — Not real APY
@@ -476,7 +476,7 @@ export function CohortDetailAndSettleScreen() {
           <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
             <div className="text-[11px] text-neutral-500">6. Finisher Reward Pool</div>
             <div className="mt-1 font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">
-              {formatUsdc(econ.pool, { maxDecimals: 6 })}
+              {formatSol(econ.pool, { maxDecimals: 9 })}
             </div>
             <div className="mt-0.5 text-[10px] text-neutral-400">
               {econ.nobodyEligible ? 'Nobody eligible (refunded)' : 'Shared by eligible finishers'}

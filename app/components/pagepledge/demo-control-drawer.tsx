@@ -14,7 +14,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { PersonaId, ScenarioPresetId } from '@/lib/chain';
-import { formatUsdc } from '@/lib/economics';
+import { formatSol } from '@/lib/economics';
 import { usePagePledgeStore } from '@/lib/store/use-pagepledge-store';
 
 export function DemoControlDrawer() {
@@ -45,8 +45,8 @@ export function DemoControlDrawer() {
 
   const handleFaucet = async (id: PersonaId) => {
     try {
-      await faucet(id, 500);
-      toast.success(`Minted +500.00 USDC to ${id}`);
+      await faucet(id, 5);
+      toast.success(`Airdropped +5.00 SOL to ${id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Faucet failed');
     }
@@ -99,14 +99,14 @@ export function DemoControlDrawer() {
         </span>
       </div>
 
-      {/* 1. Persona Switcher & Mock USDC Faucet */}
+      {/* 1. Persona Switcher & Mock SOL Faucet */}
       <div className="mb-5">
         <div className="mb-2 flex items-center justify-between">
           <span className=" flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
             <UserCheck className="h-3.5 w-3.5" />
             Active Persona
           </span>
-          <span className="text-[11px] text-neutral-400">Click +USDC for faucet</span>
+          <span className="text-[11px] text-neutral-400">Click +5 SOL for faucet</span>
         </div>
 
         <div className="space-y-1.5">
@@ -138,18 +138,18 @@ export function DemoControlDrawer() {
                     </span>
                   </div>
                   <span className="mt-0.5 pl-3.5 font-mono text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-                    {formatUsdc(p.usdcBalance)}
+                    {formatSol(p.lamportsBalance)}
                   </span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleFaucet(p.id)}
-                  title={`Mint +500 test USDC to ${p.name}`}
+                  title={`Airdrop +5 SOL to ${p.name}`}
                   className="ml-2 inline-flex items-center gap-1 rounded-lg border border-neutral-300 bg-white px-2 py-1 font-mono text-[10px] font-semibold text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
                 >
                   <Coins className="h-3 w-3 text-amber-500" />
-                  +500
+                  +5 SOL
                 </button>
               </div>
             );

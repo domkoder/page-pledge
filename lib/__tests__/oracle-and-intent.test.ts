@@ -49,7 +49,7 @@ describe('Run 2: Oracle & AI Routes + NL Cohort Intent Parser (Sections 5 & 6)',
       title: 'Oracle E2E Test Cohort',
       durationDays: 7,
       milestoneCount: 3,
-      stakeUsdc: 100,
+      stakeSol: 0.5,
       maxParticipants: 5,
     });
     await chain.join('alice', cohort.id);
@@ -158,29 +158,81 @@ describe('Run 2: Oracle & AI Routes + NL Cohort Intent Parser (Sections 5 & 6)',
     expect(blockedRes.status).toBe(429);
   });
 
-  it('parses natural-language cohort intents with strict Zod schema and rejects unsupported features (leverage, custom fee, creator cut)', async () => {
-    // 1. Valid example chips parse cleanly
+  it('parses natural-language cohort intents with strict Zod schema (stakeSol 0.05..10), supports custom study text SHA-256 contentHash, and rejects unsupported features (leverage, custom fee, creator cut)', async () => {
+    // 1. Valid example chips parse cleanly in SOL & lamports
     const validChips = EXAMPLE_INTENT_CHIPS.filter((c) => !c.isUnsupportedDemo);
     for (const chip of validChips) {
       const parsed = await parseCohortIntent(chip.prompt, true);
       expect(parsed.ok).toBe(true);
       expect(parsed.intent).toBeDefined();
       expect(() => CohortIntentSchema.parse(parsed.intent)).not.toThrow();
+      expect(parsed.intent!.stakeSol).toBeGreaterThanOrEqual(0.05);
+      expect(parsed.intent!.stakeSol).toBeLessThanOrEqual(10);
+      expect(parsed.terms?.stakeFormatted).toContain('SOL');
+      expect(parsed.terms?.stakeLamports).toBeGreaterThanOrEqual(50_000_000n);
       expect(parsed.terms?.gracePeriodFormatted).toContain('1 minute');
     }
 
-    // 2. Extra fields are rejected by CohortIntentSchema.strict()
+    // 2. Out-of-bounds stakeSol (< 0.05 or > 10) and extra fields are rejected by CohortIntentSchema.strict()
+    expect(
+      CohortIntentSchema.safeParse({
+        title: 'Too Small Stake',
+        durationDays: 14,
+        milestoneCount: 4,
+        stakeSol: 0.01,
+        maxParticipants: 10,
+      }).success
+    ).toBe(false);
+
+    expect(
+      CohortIntentSchema.safeParse({
+        title: 'Too Large Stake',
+        durationDays: 14,
+        milestoneCount: 4,
+        stakeSol: 15,
+        maxParticipants: 10,
+      }).success
+    ).toBe(false);
+
     const strictCheck = CohortIntentSchema.safeParse({
       title: 'Valid Title',
       durationDays: 14,
       milestoneCount: 4,
-      stakeUsdc: 100,
+      stakeSol: 0.5,
       maxParticipants: 10,
       extraInstructionAccount: 'malicious_account',
     });
     expect(strictCheck.success).toBe(false);
 
-    // 3. Unsupported request chip is rejected with 422 and clear reason on POST /api/intent
+    // 3. Optional custom study text in POST /api/intent computes SHA-256 contentHash and binds to created cohort
+    const customStudyText =
+      'Zero-copy deserialization in Solana programs reads account byte slices directly from memory without heap allocation.';
+    const expectedCustomHash = hashAnswerText(customStudyText);
+
+    const customReq = new Request('http://localhost/api/intent', {
+      method: 'POST',
+      body: JSON.stringify({
+        prompt:
+          'Create a 14-day Solana Zero-Copy Study cohort with 3 milestones, 0.5 SOL stake, and max 8 participants.',
+        demoFastMode: true,
+        customMaterialText: customStudyText,
+      }),
+    });
+    const customRes = await intentPost(customReq);
+    expect(customRes.status).toBe(200);
+    const customBody = await customRes.json();
+    expect(customBody.ok).toBe(true);
+    expect(customBody.terms.contentHash).toBe(expectedCustomHash);
+
+    const chain = new MockChain({ initialNow: 12_000_000, persist: false });
+    const { data: customCohort } = await chain.createCohort('creator', {
+      ...customBody.intent,
+      contentHash: customBody.terms.contentHash,
+      customMaterialText: customStudyText,
+    });
+    expect(customCohort.contentHash).toBe(expectedCustomHash);
+
+    // 4. Unsupported request chip is rejected with 422 and clear reason on POST /api/intent
     const badChip = EXAMPLE_INTENT_CHIPS.find((c) => c.isUnsupportedDemo)!;
     const req = new Request('http://localhost/api/intent', {
       method: 'POST',

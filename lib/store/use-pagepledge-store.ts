@@ -16,7 +16,7 @@ import {
   runScenarioPresetOnChain,
   runSecurityDemoOnChain,
 } from '../chain';
-import { ONE_USDC, formatUsdc } from '../economics';
+import { formatSol, parseSolToLamports } from '../economics';
 import { resetOracleRateLimits } from '../oracle/grader';
 
 export type ScreenTab =
@@ -90,7 +90,7 @@ interface PagePledgeStoreState {
   settleUser: (cohortId: string, targetUser: string, caller?: string) => Promise<void>;
   finalizeCohort: (cohortId: string, caller?: string) => Promise<void>;
   claimPayout: (cohortId: string, user?: string) => Promise<bigint>;
-  faucet: (user?: PersonaId, amountUsdc?: number) => Promise<void>;
+  faucet: (user?: PersonaId, amountSol?: number) => Promise<void>;
 
   // Clock & economic simulation controls
   advanceClock: (deltaSeconds: number) => void;
@@ -277,10 +277,10 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
     }
   },
 
-  faucet: async (user, amountUsdc = 500) => {
+  faucet: async (user, amountSol = 5) => {
     const { chain, activePersona, syncFromChain } = get();
     const target = user ?? activePersona;
-    const res = await chain.faucet(target, BigInt(amountUsdc) * ONE_USDC);
+    const res = await chain.faucet(target, parseSolToLamports(amountSol));
     syncFromChain();
     set({ lastTx: res.tx });
   },
@@ -373,7 +373,7 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
             timestamp: now,
             cohortId: cohort.id,
             action: 'SETTLE',
-            message: `Settled ${p.user} on "${cohort.title}": ${res.data.missedCount} missed, forfeit ${formatUsdc(res.data.forfeit)}, earned bounty ${formatUsdc(res.data.bounty)}.`,
+            message: `Settled ${p.user} on "${cohort.title}": ${res.data.missedCount} missed, forfeit ${formatSol(res.data.forfeit)}, earned bounty ${formatSol(res.data.bounty)}.`,
             txSignature: res.tx.signature,
           });
         } catch (err) {
@@ -403,7 +403,7 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
             timestamp: now,
             cohortId: cohort.id,
             action: 'FINALIZE',
-            message: `All users settled in "${cohort.title}" -> called public finalize()! Reward pool: ${formatUsdc(finRes.data.pool)}.`,
+            message: `All users settled in "${cohort.title}" -> called public finalize()! Reward pool: ${formatSol(finRes.data.pool)}.`,
             txSignature: finRes.tx.signature,
           });
         } catch {

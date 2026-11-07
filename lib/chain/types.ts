@@ -46,7 +46,7 @@ export interface PersonaAccount {
   name: string;
   role: string;
   pubkey: string;
-  usdcBalance: bigint; // micro-USDC (6 decimals)
+  lamportsBalance: bigint; // Native SOL in lamports (9 decimals)
 }
 
 export interface MilestoneCommitRecord {
@@ -88,18 +88,20 @@ export interface CohortAccount {
   creator: string;
   epoch: number; // created_at unix seconds
   status: CohortStatus;
-  stake: bigint; // S_i in micro-USDC
+  stake: bigint; // S_i in lamports
   milestoneCount: number; // M (2..10)
   maxParticipants: number; // 2..50
   deadlines: number[]; // unix timestamps (seconds) of length M
   gracePeriodSeconds: number;
   contentHash: string;
+  customMaterialText?: string;
   oraclePubkeyHex: string; // 32-byte Ed25519 public key in hex (64 chars)
   clusterId: string;
   programId: string;
   startedAt?: number;
+  lastOracleTs: number; // unix timestamp of latest completeMilestone (0 if none)
   participants: Record<string, ParticipantState>; // keyed by user pubkey
-  vaultBalance: bigint; // current vault assets in micro-USDC
+  vaultBalance: bigint; // current vault assets in lamports
   totalDeposits: bigint;
   totalBountiesPaid: bigint;
   economicsSnapshot?: EconomicsResult;
@@ -145,11 +147,12 @@ export interface ValidatedCohortIntent {
   description?: string;
   durationDays: number; // 1..90
   milestoneCount: number; // 2..10
-  stakeUsdc: number; // 1..500 (or exact microUsdc via stakeMicroUsdc)
-  stakeMicroUsdc?: bigint;
+  stakeSol: number; // 0.05..10 (or exact lamports via stakeLamports)
+  stakeLamports?: bigint;
   maxParticipants: number; // 2..50
   demoFastMode?: boolean; // when true: 2-minute milestone intervals, 1-minute grace
   contentHash?: string;
+  customMaterialText?: string;
   gracePeriodSeconds?: number;
 }
 
@@ -206,7 +209,7 @@ export interface ChainClient {
   claim(user: string, cohortId: string): Promise<TxResult<{ payout: bigint }>>;
 
   // Demo & Simulation controls
-  faucet(user: string, amountMicroUsdc: bigint): Promise<TxResult<{ newBalance: bigint }>>;
+  faucet(user: string, amountLamports?: bigint): Promise<TxResult<{ newBalance: bigint }>>;
   advanceClock(deltaSeconds: number): void;
   setClock(timestampSeconds: number): void;
   setYieldAprBps(aprBps: bigint): void;

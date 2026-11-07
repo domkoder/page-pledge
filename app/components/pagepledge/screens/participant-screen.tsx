@@ -312,7 +312,7 @@ export function ParticipantExaminerScreen() {
                 </span>
               </div>
               <span className="rounded bg-neutral-100 px-2 py-0.5 font-mono text-[10px] dark:bg-neutral-800">
-                sha256: {material.contentHash.slice(0, 12)}...
+                sha256: {(cohort.customMaterialText ? cohort.contentHash : material.contentHash).slice(0, 12)}...
               </span>
             </div>
 
@@ -320,7 +320,7 @@ export function ParticipantExaminerScreen() {
             <p className="mt-0.5 text-xs text-neutral-500">{material.subtitle}</p>
 
             <div className="mt-4 space-y-3 rounded-xl border border-neutral-200/80 bg-neutral-50/80 p-4 text-xs leading-relaxed text-neutral-800 dark:border-neutral-800 dark:bg-neutral-950/80 dark:text-neutral-200">
-              {material.passage.split('\n\n').map((para, i) => (
+              {(cohort.customMaterialText ?? material.passage).split('\n\n').map((para, i) => (
                 <p key={i}>{para}</p>
               ))}
             </div>

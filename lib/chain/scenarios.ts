@@ -1,4 +1,4 @@
-import { ONE_USDC, formatUsdc } from '../economics';
+import { LAMPORTS_PER_SOL, formatSol } from '../economics';
 import { MILESTONE_MATERIALS } from '../oracle/passages';
 import { hashAnswerText, signAttestation } from './attestation';
 import { ChainClient, ChainErrorCode, ChainProgramError, CohortAccount } from './types';
@@ -17,11 +17,10 @@ export interface SecurityDemoRow {
 }
 
 /**
- * Runs one of the 4 automated Scenario Presets from Section 7.7 of p1.md
- * against the provided ChainClient:
+ * Runs one of the 4 automated Scenario Presets against the provided ChainClient:
  * - all_finish: Alice, Bob, Carol all complete every milestone; 0 forfeits; simulated yield shared.
  * - all_fail: Alice, Bob, Carol all miss milestones (nobody eligible); net forfeits refunded minus 2% fee; yield swept to treasury.
- * - mixed: Alice completes every milestone (PASSED), Bob misses some (MISSED), Carol commits M3 but is never graded (NEUTRAL).
+ * - mixed: Alice completes every milestone (PASSED), Bob misses some (MISSED), Carol commits M2 after Alice's M2 completion and is never graded (NEUTRAL).
  * - lender_loss: Mixed outcomes + 25% lender loss (h < 1), demonstrating haircut scaling and Y = 0 while maintaining solvency invariant.
  */
 export async function runScenarioPresetOnChain(
@@ -35,6 +34,13 @@ export async function runScenarioPresetOnChain(
     lender_loss: 'Scenario: Lender Loss Haircut (h < 1)',
   };
 
+  const presetStakesSol: Record<ScenarioPresetId, number> = {
+    all_finish: 0.5,
+    all_fail: 0.1,
+    mixed: 1.0,
+    lender_loss: 0.5,
+  };
+
   // Configure yield & lender loss for the preset
   chain.setYieldAprBps(500n); // 5.00% APR
   if (preset === 'lender_loss') {
@@ -43,11 +49,11 @@ export async function runScenarioPresetOnChain(
     chain.setLenderLossBps(0n);
   }
 
-  // Ensure personas have ample USDC
+  // Ensure personas have ample SOL
   for (const user of ['alice', 'bob', 'carol']) {
     const p = chain.getPersona(user);
-    if (!p || p.usdcBalance < 200n * ONE_USDC) {
-      await chain.faucet(user, 500n * ONE_USDC);
+    if (!p || p.lamportsBalance < 2n * LAMPORTS_PER_SOL) {
+      await chain.faucet(user, 5n * LAMPORTS_PER_SOL);
     }
   }
 
@@ -56,7 +62,7 @@ export async function runScenarioPresetOnChain(
     title: titles[preset],
     durationDays: 21,
     milestoneCount,
-    stakeUsdc: 100,
+    stakeSol: presetStakesSol[preset],
     maxParticipants: 10,
   });
 
@@ -102,15 +108,22 @@ export async function runScenarioPresetOnChain(
     chain.recordFailedGrade(cohortId, 'carol', 0, 45);
   } else {
     // 'mixed' and 'lender_loss':
-    // Alice completes all 3 milestones (PASSED)
-    for (let m = 0; m < milestoneCount; m++) {
-      await commitAndComplete('alice', m, 94);
-    }
+    // Alice completes M0, M1, M2 (PASSED)
     // Bob completes M0, misses M1 and M2 (2/3 MISSED)
+    // Carol completes M0 and M1, and commits M2 after Alice's completion when the oracle subsequently goes silent (NEUTRAL)
+    await commitAndComplete('alice', 0, 94);
     await commitAndComplete('bob', 0, 82);
-    // Carol completes M0 and M1, and commits M2 before deadline but is NEVER graded (NEUTRAL)
     await commitAndComplete('carol', 0, 89);
+
+    chain.advanceClock(60);
+    await commitAndComplete('alice', 1, 94);
     await commitAndComplete('carol', 1, 86);
+
+    chain.advanceClock(60);
+    await commitAndComplete('alice', 2, 94);
+
+    // Advance clock so Carol commits M2 after the last oracle activity (lastOracleTs < carol.commitTimestamp)
+    chain.advanceClock(30);
     const carolHash2 = hashAnswerText('Carol M2 committed on time, awaiting oracle');
     await chain.commitSubmission(
       'carol',
@@ -144,7 +157,7 @@ export async function runScenarioPresetOnChain(
 }
 
 /**
- * Runs the 9 Security Demo exploits from Section 7.8 of p1.md against a live cohort
+ * Runs the 9 Security Demo exploits against a live cohort
  * and returns a structured table of attempt, expected error code, and actual result.
  */
 export async function runSecurityDemoOnChain(chain: ChainClient): Promise<{
@@ -153,8 +166,8 @@ export async function runSecurityDemoOnChain(chain: ChainClient): Promise<{
 }> {
   for (const user of ['alice', 'bob']) {
     const p = chain.getPersona(user);
-    if (!p || p.usdcBalance < 200n * ONE_USDC) {
-      await chain.faucet(user, 500n * ONE_USDC);
+    if (!p || p.lamportsBalance < 2n * LAMPORTS_PER_SOL) {
+      await chain.faucet(user, 5n * LAMPORTS_PER_SOL);
     }
   }
 
@@ -162,7 +175,7 @@ export async function runSecurityDemoOnChain(chain: ChainClient): Promise<{
     title: 'Security Audit Live Target Cohort',
     durationDays: 6,
     milestoneCount: 2,
-    stakeUsdc: 100,
+    stakeSol: 0.5,
     maxParticipants: 5,
     gracePeriodSeconds: 600,
   });
@@ -350,7 +363,7 @@ export async function runSecurityDemoOnChain(chain: ChainClient): Promise<{
   await captureAttempt(
     'double-claim',
     '9. Double claim',
-    `Alice attempts to call claim() a second time after already withdrawing ${formatUsdc(aliceClaim.data.payout)}.`,
+    `Alice attempts to call claim() a second time after already withdrawing ${formatSol(aliceClaim.data.payout)}.`,
     'AlreadyClaimed',
     () => chain.claim('alice', cohortId)
   );
