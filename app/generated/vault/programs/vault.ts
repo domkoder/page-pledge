@@ -40,7 +40,7 @@ import {
 } from "../instructions";
 
 export const VAULT_PROGRAM_ADDRESS =
-  "Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t" as Address<"Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t">;
+  "F4jZpgbtTb6RWNWq6v35fUeiAsRJMrDczVPv9U23yXjB" as Address<"F4jZpgbtTb6RWNWq6v35fUeiAsRJMrDczVPv9U23yXjB">;
 
 export enum VaultAccount {
   Cohort,
@@ -211,7 +211,7 @@ export function identifyVaultInstruction(
 }
 
 export type ParsedVaultInstruction<
-  TProgram extends string = "Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t",
+  TProgram extends string = "F4jZpgbtTb6RWNWq6v35fUeiAsRJMrDczVPv9U23yXjB",
 > =
   | ({
       instructionType: VaultInstruction.Claim;

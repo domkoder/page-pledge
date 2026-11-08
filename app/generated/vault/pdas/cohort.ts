@@ -25,7 +25,7 @@ export async function findCohortPda(
   config: { programAddress?: Address | undefined } = {},
 ): Promise<ProgramDerivedAddress> {
   const {
-    programAddress = "Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t" as Address<"Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t">,
+    programAddress = "F4jZpgbtTb6RWNWq6v35fUeiAsRJMrDczVPv9U23yXjB" as Address<"F4jZpgbtTb6RWNWq6v35fUeiAsRJMrDczVPv9U23yXjB">,
   } = config;
   return await getProgramDerivedAddress({
     programAddress,

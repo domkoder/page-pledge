@@ -7,7 +7,7 @@ use anchor_lang::system_program::{transfer, Transfer};
 #[cfg(test)]
 mod tests;
 
-declare_id!("Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t");
+declare_id!("F4jZpgbtTb6RWNWq6v35fUeiAsRJMrDczVPv9U23yXjB");
 
 pub const MAX_MILESTONES: usize = 10;
 pub const MIN_MILESTONES: u8 = 2;
