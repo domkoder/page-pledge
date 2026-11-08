@@ -17,17 +17,77 @@ import {
   type ReadonlyUint8Array,
 } from "@solana/kit";
 import {
+  parseClaimInstruction,
+  parseCommitSubmissionInstruction,
+  parseCompleteMilestoneInstruction,
+  parseCreateCohortInstruction,
   parseDepositInstruction,
+  parseFinalizeInstruction,
+  parseJoinInstruction,
+  parseSettleUserInstruction,
+  parseStartCohortInstruction,
   parseWithdrawInstruction,
+  type ParsedClaimInstruction,
+  type ParsedCommitSubmissionInstruction,
+  type ParsedCompleteMilestoneInstruction,
+  type ParsedCreateCohortInstruction,
   type ParsedDepositInstruction,
+  type ParsedFinalizeInstruction,
+  type ParsedJoinInstruction,
+  type ParsedSettleUserInstruction,
+  type ParsedStartCohortInstruction,
   type ParsedWithdrawInstruction,
 } from "../instructions";
 
 export const VAULT_PROGRAM_ADDRESS =
   "Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t" as Address<"Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t">;
 
+export enum VaultAccount {
+  Cohort,
+  Participant,
+}
+
+export function identifyVaultAccount(
+  account: { data: ReadonlyUint8Array } | ReadonlyUint8Array,
+): VaultAccount {
+  const data = "data" in account ? account.data : account;
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([137, 17, 213, 61, 105, 64, 144, 169]),
+      ),
+      0,
+    )
+  ) {
+    return VaultAccount.Cohort;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([32, 142, 108, 79, 247, 179, 54, 6]),
+      ),
+      0,
+    )
+  ) {
+    return VaultAccount.Participant;
+  }
+  throw new Error(
+    "The provided account could not be identified as a vault account.",
+  );
+}
+
 export enum VaultInstruction {
+  Claim,
+  CommitSubmission,
+  CompleteMilestone,
+  CreateCohort,
   Deposit,
+  Finalize,
+  Join,
+  SettleUser,
+  StartCohort,
   Withdraw,
 }
 
@@ -39,12 +99,100 @@ export function identifyVaultInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([62, 198, 214, 193, 213, 159, 108, 210]),
+      ),
+      0,
+    )
+  ) {
+    return VaultInstruction.Claim;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([170, 169, 211, 57, 180, 35, 191, 235]),
+      ),
+      0,
+    )
+  ) {
+    return VaultInstruction.CommitSubmission;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([137, 164, 160, 100, 33, 64, 178, 10]),
+      ),
+      0,
+    )
+  ) {
+    return VaultInstruction.CompleteMilestone;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([212, 147, 210, 193, 29, 212, 39, 122]),
+      ),
+      0,
+    )
+  ) {
+    return VaultInstruction.CreateCohort;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([242, 35, 198, 137, 82, 225, 242, 182]),
       ),
       0,
     )
   ) {
     return VaultInstruction.Deposit;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([171, 61, 218, 56, 127, 115, 12, 217]),
+      ),
+      0,
+    )
+  ) {
+    return VaultInstruction.Finalize;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([206, 55, 2, 106, 113, 220, 17, 163]),
+      ),
+      0,
+    )
+  ) {
+    return VaultInstruction.Join;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([103, 154, 101, 232, 185, 165, 227, 192]),
+      ),
+      0,
+    )
+  ) {
+    return VaultInstruction.SettleUser;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([187, 112, 153, 237, 81, 73, 74, 195]),
+      ),
+      0,
+    )
+  ) {
+    return VaultInstruction.StartCohort;
   }
   if (
     containsBytes(
@@ -66,8 +214,32 @@ export type ParsedVaultInstruction<
   TProgram extends string = "Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t",
 > =
   | ({
+      instructionType: VaultInstruction.Claim;
+    } & ParsedClaimInstruction<TProgram>)
+  | ({
+      instructionType: VaultInstruction.CommitSubmission;
+    } & ParsedCommitSubmissionInstruction<TProgram>)
+  | ({
+      instructionType: VaultInstruction.CompleteMilestone;
+    } & ParsedCompleteMilestoneInstruction<TProgram>)
+  | ({
+      instructionType: VaultInstruction.CreateCohort;
+    } & ParsedCreateCohortInstruction<TProgram>)
+  | ({
       instructionType: VaultInstruction.Deposit;
     } & ParsedDepositInstruction<TProgram>)
+  | ({
+      instructionType: VaultInstruction.Finalize;
+    } & ParsedFinalizeInstruction<TProgram>)
+  | ({
+      instructionType: VaultInstruction.Join;
+    } & ParsedJoinInstruction<TProgram>)
+  | ({
+      instructionType: VaultInstruction.SettleUser;
+    } & ParsedSettleUserInstruction<TProgram>)
+  | ({
+      instructionType: VaultInstruction.StartCohort;
+    } & ParsedStartCohortInstruction<TProgram>)
   | ({
       instructionType: VaultInstruction.Withdraw;
     } & ParsedWithdrawInstruction<TProgram>);
@@ -77,11 +249,67 @@ export function parseVaultInstruction<TProgram extends string>(
 ): ParsedVaultInstruction<TProgram> {
   const instructionType = identifyVaultInstruction(instruction);
   switch (instructionType) {
+    case VaultInstruction.Claim: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: VaultInstruction.Claim,
+        ...parseClaimInstruction(instruction),
+      };
+    }
+    case VaultInstruction.CommitSubmission: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: VaultInstruction.CommitSubmission,
+        ...parseCommitSubmissionInstruction(instruction),
+      };
+    }
+    case VaultInstruction.CompleteMilestone: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: VaultInstruction.CompleteMilestone,
+        ...parseCompleteMilestoneInstruction(instruction),
+      };
+    }
+    case VaultInstruction.CreateCohort: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: VaultInstruction.CreateCohort,
+        ...parseCreateCohortInstruction(instruction),
+      };
+    }
     case VaultInstruction.Deposit: {
       assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: VaultInstruction.Deposit,
         ...parseDepositInstruction(instruction),
+      };
+    }
+    case VaultInstruction.Finalize: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: VaultInstruction.Finalize,
+        ...parseFinalizeInstruction(instruction),
+      };
+    }
+    case VaultInstruction.Join: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: VaultInstruction.Join,
+        ...parseJoinInstruction(instruction),
+      };
+    }
+    case VaultInstruction.SettleUser: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: VaultInstruction.SettleUser,
+        ...parseSettleUserInstruction(instruction),
+      };
+    }
+    case VaultInstruction.StartCohort: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: VaultInstruction.StartCohort,
+        ...parseStartCohortInstruction(instruction),
       };
     }
     case VaultInstruction.Withdraw: {

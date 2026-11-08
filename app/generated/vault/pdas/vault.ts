@@ -15,7 +15,7 @@ import {
 } from "@solana/kit";
 
 export type VaultSeeds = {
-  signer: Address;
+  cohort: Address;
 };
 
 export async function findVaultPda(
@@ -29,7 +29,7 @@ export async function findVaultPda(
     programAddress,
     seeds: [
       getBytesEncoder().encode(new Uint8Array([118, 97, 117, 108, 116])),
-      getAddressEncoder().encode(seeds.signer),
+      getAddressEncoder().encode(seeds.cohort),
     ],
   });
 }

@@ -30,7 +30,7 @@ import {
   type WritableAccount,
   type WritableSignerAccount,
 } from "@solana/kit";
-import { findVaultPda } from "../pdas";
+import { findDepositVaultPda } from "../pdas";
 import { VAULT_PROGRAM_ADDRESS } from "../programs";
 import {
   expectAddress,
@@ -144,7 +144,7 @@ export async function getWithdrawInstructionAsync<
 
   // Resolve default values.
   if (!accounts.vault.value) {
-    accounts.vault.value = await findVaultPda({
+    accounts.vault.value = await findDepositVaultPda({
       signer: expectAddress(accounts.signer.value),
     });
   }

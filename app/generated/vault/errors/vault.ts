@@ -18,15 +18,96 @@ import { VAULT_PROGRAM_ADDRESS } from "../programs";
 export const VAULT_ERROR__VAULT_ALREADY_EXISTS = 0x1770; // 6000
 /** InvalidAmount: Invalid amount */
 export const VAULT_ERROR__INVALID_AMOUNT = 0x1771; // 6001
+/** WrongUser: WrongUser */
+export const VAULT_ERROR__WRONG_USER = 0x1772; // 6002
+/** WrongCohort: WrongCohort */
+export const VAULT_ERROR__WRONG_COHORT = 0x1773; // 6003
+/** AttestationExpired: AttestationExpired */
+export const VAULT_ERROR__ATTESTATION_EXPIRED = 0x1774; // 6004
+/** ScoreTooLow: ScoreTooLow */
+export const VAULT_ERROR__SCORE_TOO_LOW = 0x1775; // 6005
+/** AlreadyCompleted: AlreadyCompleted */
+export const VAULT_ERROR__ALREADY_COMPLETED = 0x1776; // 6006
+/** SubmissionWindowClosed: SubmissionWindowClosed */
+export const VAULT_ERROR__SUBMISSION_WINDOW_CLOSED = 0x1777; // 6007
+/** NotCommitted: NotCommitted */
+export const VAULT_ERROR__NOT_COMMITTED = 0x1778; // 6008
+/** SettlementTooEarly: SettlementTooEarly */
+export const VAULT_ERROR__SETTLEMENT_TOO_EARLY = 0x1779; // 6009
+/** AlreadySettled: AlreadySettled */
+export const VAULT_ERROR__ALREADY_SETTLED = 0x177a; // 6010
+/** NotFinalized: NotFinalized */
+export const VAULT_ERROR__NOT_FINALIZED = 0x177b; // 6011
+/** AlreadyClaimed: AlreadyClaimed */
+export const VAULT_ERROR__ALREADY_CLAIMED = 0x177c; // 6012
+/** BadSignature: BadSignature */
+export const VAULT_ERROR__BAD_SIGNATURE = 0x177d; // 6013
+/** CohortNotOpen: CohortNotOpen */
+export const VAULT_ERROR__COHORT_NOT_OPEN = 0x177e; // 6014
+/** CohortFull: CohortFull */
+export const VAULT_ERROR__COHORT_FULL = 0x177f; // 6015
+/** MinParticipantsNotMet: MinParticipantsNotMet */
+export const VAULT_ERROR__MIN_PARTICIPANTS_NOT_MET = 0x1780; // 6016
+/** MaxAttemptsExceeded: MaxAttemptsExceeded */
+export const VAULT_ERROR__MAX_ATTEMPTS_EXCEEDED = 0x1781; // 6017
+/** AlreadyJoined: AlreadyJoined */
+export const VAULT_ERROR__ALREADY_JOINED = 0x1782; // 6018
+/** InsufficientBalance: InsufficientBalance */
+export const VAULT_ERROR__INSUFFICIENT_BALANCE = 0x1783; // 6019
+/** NotAllUsersSettled: NotAllUsersSettled */
+export const VAULT_ERROR__NOT_ALL_USERS_SETTLED = 0x1784; // 6020
+/** AlreadyFinalized: AlreadyFinalized */
+export const VAULT_ERROR__ALREADY_FINALIZED = 0x1785; // 6021
 
 export type VaultError =
-  typeof VAULT_ERROR__INVALID_AMOUNT | typeof VAULT_ERROR__VAULT_ALREADY_EXISTS;
+  | typeof VAULT_ERROR__ALREADY_CLAIMED
+  | typeof VAULT_ERROR__ALREADY_COMPLETED
+  | typeof VAULT_ERROR__ALREADY_FINALIZED
+  | typeof VAULT_ERROR__ALREADY_JOINED
+  | typeof VAULT_ERROR__ALREADY_SETTLED
+  | typeof VAULT_ERROR__ATTESTATION_EXPIRED
+  | typeof VAULT_ERROR__BAD_SIGNATURE
+  | typeof VAULT_ERROR__COHORT_FULL
+  | typeof VAULT_ERROR__COHORT_NOT_OPEN
+  | typeof VAULT_ERROR__INSUFFICIENT_BALANCE
+  | typeof VAULT_ERROR__INVALID_AMOUNT
+  | typeof VAULT_ERROR__MAX_ATTEMPTS_EXCEEDED
+  | typeof VAULT_ERROR__MIN_PARTICIPANTS_NOT_MET
+  | typeof VAULT_ERROR__NOT_ALL_USERS_SETTLED
+  | typeof VAULT_ERROR__NOT_COMMITTED
+  | typeof VAULT_ERROR__NOT_FINALIZED
+  | typeof VAULT_ERROR__SCORE_TOO_LOW
+  | typeof VAULT_ERROR__SETTLEMENT_TOO_EARLY
+  | typeof VAULT_ERROR__SUBMISSION_WINDOW_CLOSED
+  | typeof VAULT_ERROR__VAULT_ALREADY_EXISTS
+  | typeof VAULT_ERROR__WRONG_COHORT
+  | typeof VAULT_ERROR__WRONG_USER;
 
 let vaultErrorMessages: Record<VaultError, string> | undefined;
 if (process.env.NODE_ENV !== "production") {
   vaultErrorMessages = {
+    [VAULT_ERROR__ALREADY_CLAIMED]: `AlreadyClaimed`,
+    [VAULT_ERROR__ALREADY_COMPLETED]: `AlreadyCompleted`,
+    [VAULT_ERROR__ALREADY_FINALIZED]: `AlreadyFinalized`,
+    [VAULT_ERROR__ALREADY_JOINED]: `AlreadyJoined`,
+    [VAULT_ERROR__ALREADY_SETTLED]: `AlreadySettled`,
+    [VAULT_ERROR__ATTESTATION_EXPIRED]: `AttestationExpired`,
+    [VAULT_ERROR__BAD_SIGNATURE]: `BadSignature`,
+    [VAULT_ERROR__COHORT_FULL]: `CohortFull`,
+    [VAULT_ERROR__COHORT_NOT_OPEN]: `CohortNotOpen`,
+    [VAULT_ERROR__INSUFFICIENT_BALANCE]: `InsufficientBalance`,
     [VAULT_ERROR__INVALID_AMOUNT]: `Invalid amount`,
+    [VAULT_ERROR__MAX_ATTEMPTS_EXCEEDED]: `MaxAttemptsExceeded`,
+    [VAULT_ERROR__MIN_PARTICIPANTS_NOT_MET]: `MinParticipantsNotMet`,
+    [VAULT_ERROR__NOT_ALL_USERS_SETTLED]: `NotAllUsersSettled`,
+    [VAULT_ERROR__NOT_COMMITTED]: `NotCommitted`,
+    [VAULT_ERROR__NOT_FINALIZED]: `NotFinalized`,
+    [VAULT_ERROR__SCORE_TOO_LOW]: `ScoreTooLow`,
+    [VAULT_ERROR__SETTLEMENT_TOO_EARLY]: `SettlementTooEarly`,
+    [VAULT_ERROR__SUBMISSION_WINDOW_CLOSED]: `SubmissionWindowClosed`,
     [VAULT_ERROR__VAULT_ALREADY_EXISTS]: `Vault already exists`,
+    [VAULT_ERROR__WRONG_COHORT]: `WrongCohort`,
+    [VAULT_ERROR__WRONG_USER]: `WrongUser`,
   };
 }
 

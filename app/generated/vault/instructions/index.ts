@@ -6,5 +6,13 @@
  * @see https://github.com/codama-idl/codama
  */
 
+export * from "./claim";
+export * from "./commitSubmission";
+export * from "./completeMilestone";
+export * from "./createCohort";
 export * from "./deposit";
+export * from "./finalize";
+export * from "./join";
+export * from "./settleUser";
+export * from "./startCohort";
 export * from "./withdraw";

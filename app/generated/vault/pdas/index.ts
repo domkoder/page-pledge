@@ -6,4 +6,8 @@
  * @see https://github.com/codama-idl/codama
  */
 
+export * from "./cohort";
+export * from "./depositVault";
+export * from "./participant";
+export * from "./startCohortParticipant";
 export * from "./vault";
