@@ -14,7 +14,7 @@ PagePledge solves the chronic **90%+ dropout rate** in online learning and study
 
 ---
 
-## 1. Why PagePledge Wins: Track-by-Track Alignment
+## 1. Track-by-Track Alignment
 
 ### 🏆 Top 3 Overall
 
