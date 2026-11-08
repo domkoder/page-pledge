@@ -20,9 +20,11 @@ custom-panic = []
 
 [dependencies]
 anchor-lang = { version = "1.1.2", features = ["init-if-needed"] }
+solana-instructions-sysvar = "3.0.1"
 
 [dev-dependencies]
-litesvm = "0.16.0"
+ed25519-dalek = "2.2.0"
+litesvm = { version = "0.16.0", features = ["precompiles"] }
 solana-sdk = "4.0.1"
 
 [lints.rust]

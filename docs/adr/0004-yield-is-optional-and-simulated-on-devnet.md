@@ -1,6 +1,6 @@
 # 0004 — Yield is optional and simulated on devnet
 
-**Status:** accepted
+**Status:** accepted (amended by ADR 0014: second mock-lender Anchor program cut per cut-first rule; yield and lender-loss haircut simulated in `lib/economics.ts` / `MockChain`)
 
 ## Context
 Real lending protocols (Kamino, Jupiter Lend, marginfi) have little or no devnet support. The core must work with no yield, and claims must never depend on a lending protocol being live.

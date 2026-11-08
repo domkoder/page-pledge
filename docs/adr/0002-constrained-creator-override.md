@@ -1,6 +1,6 @@
 # 0002 — Creator override is constrained
 
-**Status:** accepted (amends 0001)
+**Status:** superseded by ADR 0011 (deterministic `NEUTRAL` outcome via on-chain `commit_submission` and cohort-level oracle liveness tracking)
 
 ## Context
 0001 lets the cohort creator sign a manual override completion. Unconstrained, a creator could approve their own wallets, or collude with friends, to collect the reward pool.

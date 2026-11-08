@@ -1,6 +1,6 @@
 # 0006 — Payout rule
 
-**Status:** accepted
+**Status:** superseded by ADR 0013 (`p1.md` / `lib/economics.ts` proportional forfeiture, 200 bps protocol fee, 100 bps keeper bounty capped at 0.01 SOL, and end-of-cohort `settle_user` -> `finalize` -> `claim`)
 
 ## Decision
 - Per missed milestone, forfeiture = `pledge * forfeit_bps / milestone_count`, taken once per milestone at `deadline + grace`.
