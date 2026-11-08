@@ -2,15 +2,21 @@
 
 This template includes a simple SOL vault program built with [Anchor](https://www.anchor-lang.com/).
 
-## Pre-deployed Program
+## Pre-deployed Program (Devnet)
 
-The vault program is deployed on **devnet** at:
+The PagePledge vault program is deployed and verified on **devnet**:
 
+- **Program ID:** [`Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t`](https://explorer.solana.com/address/Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t?cluster=devnet)
+- **ProgramData Address:** [`DLYUX197AmBGQpGd6vvguy679y1kqpE2Bm52ru4HCKkA`](https://explorer.solana.com/address/DLYUX197AmBGQpGd6vvguy679y1kqpE2Bm52ru4HCKkA?cluster=devnet)
+- **IDL Metadata Account:** [`DDZvsLb7H4Q93LasKQPXstKFPfqjotgAnEtPzaDtqQnH`](https://explorer.solana.com/address/DDZvsLb7H4Q93LasKQPXstKFPfqjotgAnEtPzaDtqQnH?cluster=devnet)
+- **Upgrade Authority:** [`4kDSX6pUkSMDXgKLMFVm1itSFfVDDcMQCSUb7cXsEFjP`](https://explorer.solana.com/address/4kDSX6pUkSMDXgKLMFVm1itSFfVDDcMQCSUb7cXsEFjP?cluster=devnet)
+- **Cluster:** Devnet (`https://api.devnet.solana.com`)
+
+You can inspect the program on Solana Explorer or fetch the IDL:
+
+```bash
+anchor idl fetch Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t --provider.cluster devnet
 ```
-F4jZpgbtTb6RWNWq6v35fUeiAsRJMrDczVPv9U23yXjB
-```
-
-You can interact with it immediately by connecting your wallet to devnet.
 
 ## Deploying Your Own Program
 

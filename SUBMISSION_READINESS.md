@@ -88,7 +88,7 @@ Reference for questions judges might ask during review:
 ## 5. Judge FAQ & Positioning Guide
 
 - **Q: Is this deployed to live Devnet?**  
-  _Answer:_ The Anchor contract is fully implemented and verified via LiteSVM tests (`npm run anchor-test`). The live interactive UI uses the in-browser `MockChain` VM so judges can immediately test time-travel across milestone deadlines, run keeper sweeps, and trigger 9 exploit vectors without needing Devnet airdrops, wallets, or transaction confirmations.
+  _Answer:_ Yes! The Anchor contract is live and deployed on Solana Devnet at [`Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t`](https://explorer.solana.com/address/Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t?cluster=devnet) with on-chain IDL metadata initialized. The live interactive UI defaults to the in-browser `MockChain` VM so judges can immediately test time-travel across milestone deadlines, run keeper sweeps, and trigger 9 exploit vectors without needing Devnet airdrops, wallets, or transaction confirmations, while also supporting direct Devnet switching via `NEXT_PUBLIC_CHAIN=devnet`.
 
 - **Q: Can the AI steal or slash user money?**  
   _Answer:_ No. The AI oracle is strictly constrained to signing `PAGEPLEDGE_ATT_V1` completion attestations. Forfeitures and payouts are calculated purely by deterministic Solana smart contract logic based on on-chain commit hashes and timestamps.

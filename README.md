@@ -2,7 +2,8 @@
 
 > **Solana Hackathon Submission (Nov 6–8)**  
 > **Target Tracks:** **Top 3 Overall** • **AI Track** • **DeFi Track** • **Best Beginner Hack**  
-> **Status:** 31 Automated Tests Passing (19 TypeScript / Vitest + 12 Rust / Anchor / LiteSVM) • 100% Offline Execution • Zero External API Keys Required
+> **Status:** 31 Automated Tests Passing (19 TypeScript / Vitest + 12 Rust / Anchor / LiteSVM) • 100% Offline Execution • Zero External API Keys Required  
+> **Devnet Program ID:** [`Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t`](https://explorer.solana.com/address/Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t?cluster=devnet)
 
 PagePledge solves the chronic **90%+ dropout rate** in online learning and study cohorts. Participants pledge native **SOL** into a per-cohort smart contract vault, complete AI-evaluated comprehension checkpoints at each milestone, and reclaim their full pledge plus a pro-rata share of forfeit rewards upon successful completion.
 
@@ -37,7 +38,46 @@ PagePledge solves the chronic **90%+ dropout rate** in online learning and study
 
 ---
 
-## 2. 30-Second Quick Start (Judge Guide)
+## 2. Live Solana Devnet Deployment
+
+The PagePledge Anchor smart contract is deployed, initialized with on-chain IDL metadata, and verified on Solana Devnet:
+
+| Parameter                 | Value                                                                                                                                             |
+| :------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Network / Cluster**     | Solana Devnet (`https://api.devnet.solana.com`)                                                                                                   |
+| **Program ID**            | [`Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t`](https://explorer.solana.com/address/Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t?cluster=devnet) |
+| **ProgramData Account**   | [`DLYUX197AmBGQpGd6vvguy679y1kqpE2Bm52ru4HCKkA`](https://explorer.solana.com/address/DLYUX197AmBGQpGd6vvguy679y1kqpE2Bm52ru4HCKkA?cluster=devnet) |
+| **Upgrade Authority**     | [`4kDSX6pUkSMDXgKLMFVm1itSFfVDDcMQCSUb7cXsEFjP`](https://explorer.solana.com/address/4kDSX6pUkSMDXgKLMFVm1itSFfVDDcMQCSUb7cXsEFjP?cluster=devnet) |
+| **On-Chain IDL Metadata** | [`DDZvsLb7H4Q93LasKQPXstKFPfqjotgAnEtPzaDtqQnH`](https://explorer.solana.com/address/DDZvsLb7H4Q93LasKQPXstKFPfqjotgAnEtPzaDtqQnH?cluster=devnet) |
+| **Deployment Slot**       | `520086400`                                                                                                                                       |
+| **Program Binary Size**   | 335,728 bytes                                                                                                                                     |
+| **Anchor Framework**      | `anchor-lang 0.31.x` / `anchor-cli 1.1.2`                                                                                                         |
+
+### On-Chain Verification Commands
+
+Verify the deployed bytecode and on-chain Anchor IDL using the Solana and Anchor CLIs:
+
+```bash
+# 1. Inspect on-chain program account details
+solana program show Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t --url devnet
+
+# 2. Fetch the verified Anchor IDL directly from the cluster
+anchor idl fetch Dtp24PjyLpJ9Gr5TuMREoRkyRunknUjT9UW1HmiAAp3t --provider.cluster devnet
+```
+
+### Devnet Configuration & Mode Switch
+
+PagePledge defaults to the zero-dependency in-browser `MockChain` for frictionless offline evaluation. To point the application to the live Devnet deployment:
+
+```bash
+# In .env.local (or environment variables)
+NEXT_PUBLIC_CHAIN=devnet
+NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+```
+
+---
+
+## 3. 30-Second Quick Start (Judge Guide)
 
 PagePledge runs **100% locally and offline out-of-the-box** with zero required API keys, zero wallet setup, and zero faucet funding needed.
 
@@ -61,7 +101,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 3. 5-Minute Interactive Live Demo Walkthrough
+## 4. 5-Minute Interactive Live Demo Walkthrough
 
 The PagePledge Workbench includes a **Demo Control Drawer** with simulated clock controls, 5 pre-funded personas (_Creator, Alice, Bob, Carol, Keeper, Mallory_), 4 one-click scenario presets, and a live security exploit runner.
 
@@ -121,7 +161,7 @@ The PagePledge Workbench includes a **Demo Control Drawer** with simulated clock
 
 ---
 
-## 4. System Architecture
+## 5. System Architecture
 
 ```text
 +-----------------------------------------------------------------------------------------+
@@ -164,7 +204,7 @@ The PagePledge Workbench includes a **Demo Control Drawer** with simulated clock
 
 ---
 
-## 5. Smart Contract & Cryptographic Specification
+## 6. Smart Contract & Cryptographic Specification
 
 ### Accounts & PDA Hierarchy
 
@@ -190,7 +230,7 @@ To prevent front-running, replay attacks, and oracle tampering:
 
 ---
 
-## 6. DeFi Economics & Formal Solvency Invariant
+## 7. DeFi Economics & Formal Solvency Invariant
 
 All calculations are implemented in pure BigInt integer lamports (`lib/economics.ts` and `anchor/programs/vault/src/lib.rs`):
 
@@ -215,7 +255,7 @@ _Asserted on-chain in Anchor `finalize`, in `MockChain.finalize`, and verified a
 
 ---
 
-## 7. Security Matrix: 9 Exploit Vectors Live-Tested
+## 8. Security Matrix: 9 Exploit Vectors Live-Tested
 
 Every vector is verified in `lib/__tests__/mock-chain.test.ts`, tested in `anchor/programs/vault/src/tests.rs`, and runnable in the UI via the **Security Demo**:
 
@@ -233,7 +273,7 @@ Every vector is verified in `lib/__tests__/mock-chain.test.ts`, tested in `ancho
 
 ---
 
-## 8. Repository Structure & Key Code Pointers
+## 9. Repository Structure & Key Code Pointers
 
 ```text
 page-pledge/
@@ -275,7 +315,7 @@ page-pledge/
 
 ---
 
-## 9. Architectural Decision Records (ADRs)
+## 10. Architectural Decision Records (ADRs)
 
 Key architectural decisions are documented under [`docs/adr/`](docs/adr/):
 
@@ -289,6 +329,6 @@ Key architectural decisions are documented under [`docs/adr/`](docs/adr/):
 
 ---
 
-## 10. License
+## 11. License
 
 MIT. Built with ❤️ for the **Solana Hackathon 2026**.
