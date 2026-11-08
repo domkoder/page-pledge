@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { create } from 'zustand';
+import { create } from "zustand";
 import {
   ChainClient,
   ChainProgramError,
@@ -15,24 +15,24 @@ import {
   getChainClient,
   runScenarioPresetOnChain,
   runSecurityDemoOnChain,
-} from '../chain';
-import { formatSol, parseSolToLamports } from '../economics';
-import { resetOracleRateLimits } from '../oracle/grader';
+} from "../chain";
+import { formatSol, parseSolToLamports } from "../economics";
+import { resetOracleRateLimits } from "../oracle/grader";
 
 export type ScreenTab =
-  | 'home'
-  | 'cohorts'
-  | 'detail'
-  | 'participant'
-  | 'settle'
-  | 'keeper'
-  | 'security';
+  | "home"
+  | "cohorts"
+  | "detail"
+  | "participant"
+  | "settle"
+  | "keeper"
+  | "security";
 
 export interface KeeperLogEntry {
   id: string;
   timestamp: number;
   cohortId: string;
-  action: 'SCAN' | 'SETTLE' | 'FINALIZE' | 'SKIP';
+  action: "SCAN" | "SETTLE" | "FINALIZE" | "SKIP";
   message: string;
   txSignature?: string;
 }
@@ -86,8 +86,17 @@ interface PagePledgeStoreState {
     milestoneIdx: number,
     attestation: OracleAttestation
   ) => Promise<void>;
-  recordFailedGrade: (cohortId: string, user: string, milestoneIdx: number, score: number) => void;
-  settleUser: (cohortId: string, targetUser: string, caller?: string) => Promise<void>;
+  recordFailedGrade: (
+    cohortId: string,
+    user: string,
+    milestoneIdx: number,
+    score: number
+  ) => void;
+  settleUser: (
+    cohortId: string,
+    targetUser: string,
+    caller?: string
+  ) => Promise<void>;
   finalizeCohort: (cohortId: string, caller?: string) => Promise<void>;
   claimPayout: (cohortId: string, user?: string) => Promise<bigint>;
   faucet: (user?: PersonaId, amountSol?: number) => Promise<void>;
@@ -111,10 +120,10 @@ const chainInstance = getChainClient();
 
 export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
   chain: chainInstance,
-  activePersona: 'alice',
-  selectedCohortId: chainInstance.getCohorts()[0]?.id ?? 'rust-ownership-101',
+  activePersona: "alice",
+  selectedCohortId: chainInstance.getCohorts()[0]?.id ?? "rust-ownership-101",
   selectedMilestoneIdx: 0,
-  activeScreen: 'detail',
+  activeScreen: "detail",
   drawerOpen: true,
 
   now: chainInstance.getNow(),
@@ -135,7 +144,9 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
     const cohorts = chain.getCohorts();
     const txs = chain.getTransactions();
     const validSelected =
-      cohorts.find((c) => c.id === selectedCohortId)?.id ?? cohorts[0]?.id ?? '';
+      cohorts.find((c) => c.id === selectedCohortId)?.id ??
+      cohorts[0]?.id ??
+      "";
     set({
       now: chain.getNow(),
       yieldAprBps: chain.getYieldAprBps(),
@@ -150,7 +161,8 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
 
   setActivePersona: (activePersona) => set({ activePersona }),
   setSelectedCohortId: (selectedCohortId) => set({ selectedCohortId }),
-  setSelectedMilestoneIdx: (selectedMilestoneIdx) => set({ selectedMilestoneIdx }),
+  setSelectedMilestoneIdx: (selectedMilestoneIdx) =>
+    set({ selectedMilestoneIdx }),
   setActiveScreen: (activeScreen) => set({ activeScreen }),
   setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
   clearLastTx: () => set({ lastTx: null }),
@@ -163,7 +175,7 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
       set({
         selectedCohortId: res.data.id,
         lastTx: res.tx,
-        activeScreen: 'detail',
+        activeScreen: "detail",
       });
       return res.data;
     } catch (err) {
@@ -243,7 +255,11 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
   settleUser: async (cohortId, targetUser, caller) => {
     const { chain, activePersona, syncFromChain } = get();
     try {
-      const res = await chain.settleUser(caller ?? activePersona, cohortId, targetUser);
+      const res = await chain.settleUser(
+        caller ?? activePersona,
+        cohortId,
+        targetUser
+      );
       syncFromChain();
       set({ lastTx: res.tx });
     } catch (err) {
@@ -333,7 +349,9 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
 
   setLenderLossPercent: (lossPercent) => {
     const { chain, syncFromChain } = get();
-    const bps = BigInt(Math.max(0, Math.min(10000, Math.round(lossPercent * 100))));
+    const bps = BigInt(
+      Math.max(0, Math.min(10000, Math.round(lossPercent * 100)))
+    );
     chain.setLenderLossBps(bps);
     syncFromChain();
   },
@@ -356,33 +374,36 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
           id: `k_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
           timestamp: now,
           cohortId: cohort.id,
-          action: 'SKIP',
+          action: "SKIP",
           message: `[${cohort.title}] Window still open (closes in ${Math.max(0, lastWindowClose - now)}s). No special privileges—waiting for deadline + grace.`,
         });
         continue;
       }
 
-      const unsettledUsers = Object.values(cohort.participants).filter((p) => !p.settled);
+      const unsettledUsers = Object.values(cohort.participants).filter(
+        (p) => !p.settled
+      );
       for (const p of unsettledUsers) {
         try {
           // Keeper calls the exact same public ChainClient.settleUser path as any persona
-          const res = await chain.settleUser('keeper', cohort.id, p.user);
+          const res = await chain.settleUser("keeper", cohort.id, p.user);
           settledActions++;
           newLogs.push({
             id: `k_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
             timestamp: now,
             cohortId: cohort.id,
-            action: 'SETTLE',
+            action: "SETTLE",
             message: `Settled ${p.user} on "${cohort.title}": ${res.data.missedCount} missed, forfeit ${formatSol(res.data.forfeit)}, earned bounty ${formatSol(res.data.bounty)}.`,
             txSignature: res.tx.signature,
           });
         } catch (err) {
-          const msg = err instanceof ChainProgramError ? err.message : String(err);
+          const msg =
+            err instanceof ChainProgramError ? err.message : String(err);
           newLogs.push({
             id: `k_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
             timestamp: now,
             cohortId: cohort.id,
-            action: 'SKIP',
+            action: "SKIP",
             message: `Skipped ${p.user}: ${msg}`,
           });
         }
@@ -391,18 +412,18 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
       const refreshed = chain.getCohort(cohort.id);
       if (
         refreshed &&
-        refreshed.status !== 'Finalized' &&
+        refreshed.status !== "Finalized" &&
         Object.values(refreshed.participants).length > 0 &&
         Object.values(refreshed.participants).every((p) => p.settled)
       ) {
         try {
-          const finRes = await chain.finalize('keeper', cohort.id);
+          const finRes = await chain.finalize("keeper", cohort.id);
           settledActions++;
           newLogs.push({
             id: `k_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
             timestamp: now,
             cohortId: cohort.id,
-            action: 'FINALIZE',
+            action: "FINALIZE",
             message: `All users settled in "${cohort.title}" -> called public finalize()! Reward pool: ${formatSol(finRes.data.pool)}.`,
             txSignature: finRes.tx.signature,
           });
@@ -425,7 +446,7 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
     syncFromChain();
     set({
       selectedCohortId: cohort.id,
-      activeScreen: 'detail',
+      activeScreen: "detail",
     });
     return cohort;
   },
@@ -438,7 +459,7 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
       securityDemoRows: rows,
       securityDemoCohortId: cohortId,
       selectedCohortId: cohortId,
-      activeScreen: 'security',
+      activeScreen: "security",
     });
     return rows;
   },
@@ -448,9 +469,9 @@ export const usePagePledgeStore = create<PagePledgeStoreState>((set, get) => ({
     resetOracleRateLimits();
     chain.resetState();
     syncFromChain();
-    const firstId = chain.getCohorts()[0]?.id ?? 'rust-ownership-101';
+    const firstId = chain.getCohorts()[0]?.id ?? "rust-ownership-101";
     set({
-      activePersona: 'alice',
+      activePersona: "alice",
       selectedCohortId: firstId,
       selectedMilestoneIdx: 0,
       keeperBotEnabled: false,

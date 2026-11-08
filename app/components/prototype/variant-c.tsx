@@ -4,8 +4,12 @@ import { useState, useEffect } from "react";
 import { MOCK_COHORTS, CohortMock } from "./mock-data";
 
 export function VariantC() {
-  const [selectedCohort, setSelectedCohort] = useState<CohortMock>(MOCK_COHORTS[0]);
-  const [activeTab, setActiveTab] = useState<"milestones" | "live-quiz" | "vault-rules">("milestones");
+  const [selectedCohort, setSelectedCohort] = useState<CohortMock>(
+    MOCK_COHORTS[0]
+  );
+  const [activeTab, setActiveTab] = useState<
+    "milestones" | "live-quiz" | "vault-rules"
+  >("milestones");
   const [audioRecording, setAudioRecording] = useState(false);
   const [timerSecs, setTimerSecs] = useState(600);
   const [audioTranscript, setAudioTranscript] = useState("");
@@ -35,7 +39,9 @@ export function VariantC() {
             {selectedCohort.title}
           </h2>
           <p className="text-xs text-neutral-400 mt-1">
-            {selectedCohort.depositSol} SOL Pledged • ${(selectedCohort.depositSol * 180).toFixed(0)} at risk if milestone missed
+            {selectedCohort.depositSol} SOL Pledged • $
+            {(selectedCohort.depositSol * 180).toFixed(0)} at risk if milestone
+            missed
           </p>
         </div>
 
@@ -104,15 +110,29 @@ export function VariantC() {
             >
               <div className="flex justify-between items-center text-xs font-mono mb-2">
                 <span className="font-bold">Stage 0{m}</span>
-                <span className={m === 1 ? "text-emerald-500" : m === 2 ? "text-amber-500" : "text-neutral-400"}>
+                <span
+                  className={
+                    m === 1
+                      ? "text-emerald-500"
+                      : m === 2
+                        ? "text-amber-500"
+                        : "text-neutral-400"
+                  }
+                >
                   {m === 1 ? "✓ Passed" : m === 2 ? "⚡ Current" : "Locked"}
                 </span>
               </div>
               <h4 className="font-bold text-sm">
-                {m === 1 ? "Anchor Fundamentals" : m === 2 ? "PDAs & Cross-Program Invocations" : "Full Stack Devnet Deploy"}
+                {m === 1
+                  ? "Anchor Fundamentals"
+                  : m === 2
+                    ? "PDAs & Cross-Program Invocations"
+                    : "Full Stack Devnet Deploy"}
               </h4>
               <p className="text-xs text-neutral-500 mt-2">
-                {m === 2 ? "Must submit proof before 18m timer expires or forfeit 0.625 SOL." : "Requires completing chapters 1-3."}
+                {m === 2
+                  ? "Must submit proof before 18m timer expires or forfeit 0.625 SOL."
+                  : "Requires completing chapters 1-3."}
               </p>
               {m === 2 && (
                 <button
@@ -140,7 +160,8 @@ export function VariantC() {
               </h3>
             </div>
             <div className="font-mono text-xl font-bold bg-neutral-900 border border-neutral-700 px-4 py-1.5 rounded-xl text-amber-400">
-              ⏱ {Math.floor(timerSecs / 60)}:{(timerSecs % 60).toString().padStart(2, "0")}
+              ⏱ {Math.floor(timerSecs / 60)}:
+              {(timerSecs % 60).toString().padStart(2, "0")}
             </div>
           </div>
 
@@ -148,7 +169,9 @@ export function VariantC() {
             <span className="font-bold text-amber-400 block mb-1">
               🎙 Anti-Cheat Challenge (ADR 0008):
             </span>
-            The AI asks a spontaneous question derived from your written synthesis to verify authentic retention. You can speak or write the answer.
+            The AI asks a spontaneous question derived from your written
+            synthesis to verify authentic retention. You can speak or write the
+            answer.
           </div>
 
           <div className="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-4">
@@ -157,7 +180,9 @@ export function VariantC() {
                 AI
               </div>
               <p className="text-sm font-semibold text-neutral-100">
-                &quot;In 30 seconds, explain how using Seeds with find_program_address prevents unauthorized signers from forging an account PDA.&quot;
+                &quot;In 30 seconds, explain how using Seeds with
+                find_program_address prevents unauthorized signers from forging
+                an account PDA.&quot;
               </p>
             </div>
 
@@ -168,7 +193,9 @@ export function VariantC() {
                 onClick={() => {
                   setAudioRecording(!audioRecording);
                   if (!audioRecording) {
-                    setAudioTranscript("Deriving PDAs off-curve ensures no private key exists; only the program can sign with seeds...");
+                    setAudioTranscript(
+                      "Deriving PDAs off-curve ensures no private key exists; only the program can sign with seeds..."
+                    );
                   }
                 }}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-mono text-xs font-bold transition cursor-pointer ${
@@ -177,7 +204,11 @@ export function VariantC() {
                     : "bg-neutral-800 hover:bg-neutral-700 text-neutral-200"
                 }`}
               >
-                <span>{audioRecording ? "⏹ Stop Speaking" : "🎙 Record Voice Answer (15s)"}</span>
+                <span>
+                  {audioRecording
+                    ? "⏹ Stop Speaking"
+                    : "🎙 Record Voice Answer (15s)"}
+                </span>
               </button>
 
               <span className="text-xs text-neutral-500">or type below</span>
@@ -199,7 +230,9 @@ export function VariantC() {
             </button>
             <button
               onClick={() => {
-                alert("Voice & citations passed! Oracle Ed25519 signature generated.");
+                alert(
+                  "Voice & citations passed! Oracle Ed25519 signature generated."
+                );
                 setActiveTab("milestones");
               }}
               className="px-6 py-3 rounded-xl bg-emerald-500 text-neutral-950 font-bold font-mono text-xs uppercase tracking-wider hover:bg-emerald-400 transition cursor-pointer"
@@ -217,21 +250,32 @@ export function VariantC() {
             On-Chain Payout Invariant (ADR 0006)
           </h4>
           <p className="text-neutral-500">
-            Forfeitures accumulate in the Cohort Vault Reward Pool. Finishers receive their full pledge back + an equal split of the reward pool.
+            Forfeitures accumulate in the Cohort Vault Reward Pool. Finishers
+            receive their full pledge back + an equal split of the reward pool.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 font-mono">
             <div className="p-4 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-              <span className="text-neutral-400 block text-[10px]">TOTAL VAULT PLEDGED</span>
-              <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">15.0 SOL</span>
+              <span className="text-neutral-400 block text-[10px]">
+                TOTAL VAULT PLEDGED
+              </span>
+              <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+                15.0 SOL
+              </span>
             </div>
             <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
-              <span className="text-rose-500 block text-[10px]">FORFEITURE POOL (1 Miss)</span>
+              <span className="text-rose-500 block text-[10px]">
+                FORFEITURE POOL (1 Miss)
+              </span>
               <span className="text-lg font-bold text-rose-500">0.625 SOL</span>
             </div>
             <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-              <span className="text-emerald-500 block text-[10px]">ESTIMATED FINISHER REWARD</span>
-              <span className="text-lg font-bold text-emerald-500">+0.125 SOL</span>
+              <span className="text-emerald-500 block text-[10px]">
+                ESTIMATED FINISHER REWARD
+              </span>
+              <span className="text-lg font-bold text-emerald-500">
+                +0.125 SOL
+              </span>
             </div>
           </div>
         </div>

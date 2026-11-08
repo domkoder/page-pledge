@@ -10,12 +10,12 @@ import {
   computeSimulatedYield,
   formatSol,
   parseSolToLamports,
-} from '../economics';
+} from "../economics";
 import {
   getDemoOracleKeypair,
   hashAnswerText,
   verifyAttestation,
-} from './attestation';
+} from "./attestation";
 import {
   ChainClient,
   ChainErrorCode,
@@ -28,13 +28,13 @@ import {
   SimulatedTransactionLog,
   TxResult,
   ValidatedCohortIntent,
-} from './types';
+} from "./types";
 
-export const STORAGE_KEY = 'pagepledge_mockchain_v1';
-export const DEFAULT_PROGRAM_ID = 'PgP1edg3Vau1t111111111111111111111111111111';
-export const DEFAULT_CLUSTER_ID = 'devnet';
+export const STORAGE_KEY = "pagepledge_mockchain_v1";
+export const DEFAULT_PROGRAM_ID = "PgP1edg3Vau1t111111111111111111111111111111";
+export const DEFAULT_CLUSTER_ID = "devnet";
 export const DEFAULT_CONTENT_HASH =
-  'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 export const MAX_COMMIT_ATTEMPTS = 3;
 
 interface MockChainState {
@@ -50,7 +50,7 @@ interface MockChainState {
 
 function serializeWithBigInt(state: MockChainState): string {
   return JSON.stringify(state, (_key, value) =>
-    typeof value === 'bigint' ? { __bigint__: value.toString() } : value
+    typeof value === "bigint" ? { __bigint__: value.toString() } : value
   );
 }
 
@@ -58,9 +58,9 @@ function deserializeWithBigInt(raw: string): MockChainState {
   return JSON.parse(raw, (_key, value) => {
     if (
       value &&
-      typeof value === 'object' &&
-      '__bigint__' in value &&
-      typeof (value as { __bigint__: unknown }).__bigint__ === 'string'
+      typeof value === "object" &&
+      "__bigint__" in value &&
+      typeof (value as { __bigint__: unknown }).__bigint__ === "string"
     ) {
       return BigInt((value as { __bigint__: string }).__bigint__);
     }
@@ -71,45 +71,45 @@ function deserializeWithBigInt(raw: string): MockChainState {
 export function createInitialPersonas(): Record<string, PersonaAccount> {
   return {
     alice: {
-      id: 'alice',
-      name: 'Alice (Finisher)',
-      role: 'Diligent Participant',
-      pubkey: 'A1ice11111111111111111111111111111111111111',
+      id: "alice",
+      name: "Alice (Finisher)",
+      role: "Diligent Participant",
+      pubkey: "A1ice11111111111111111111111111111111111111",
       lamportsBalance: 10n * LAMPORTS_PER_SOL,
     },
     bob: {
-      id: 'bob',
-      name: 'Bob (Slacker)',
-      role: 'Partial Dropout',
-      pubkey: 'B0b1111111111111111111111111111111111111111',
+      id: "bob",
+      name: "Bob (Slacker)",
+      role: "Partial Dropout",
+      pubkey: "B0b1111111111111111111111111111111111111111",
       lamportsBalance: 10n * LAMPORTS_PER_SOL,
     },
     carol: {
-      id: 'carol',
-      name: 'Carol (Unattested)',
-      role: 'Commits But Unattested',
-      pubkey: 'Car0111111111111111111111111111111111111111',
+      id: "carol",
+      name: "Carol (Unattested)",
+      role: "Commits But Unattested",
+      pubkey: "Car0111111111111111111111111111111111111111",
       lamportsBalance: 10n * LAMPORTS_PER_SOL,
     },
     dave: {
-      id: 'dave',
-      name: 'Dave (Latecomer)',
-      role: 'Extra Participant',
-      pubkey: 'Dav3111111111111111111111111111111111111111',
+      id: "dave",
+      name: "Dave (Latecomer)",
+      role: "Extra Participant",
+      pubkey: "Dav3111111111111111111111111111111111111111",
       lamportsBalance: 10n * LAMPORTS_PER_SOL,
     },
     keeper: {
-      id: 'keeper',
-      name: 'Keeper Bot',
-      role: 'Permissionless Sweeper',
-      pubkey: 'K33p3r1111111111111111111111111111111111111',
+      id: "keeper",
+      name: "Keeper Bot",
+      role: "Permissionless Sweeper",
+      pubkey: "K33p3r1111111111111111111111111111111111111",
       lamportsBalance: 10n * LAMPORTS_PER_SOL,
     },
     creator: {
-      id: 'creator',
-      name: 'Creator (Host)',
-      role: 'Cohort Organizer',
-      pubkey: 'Cr3at0r111111111111111111111111111111111111',
+      id: "creator",
+      name: "Creator (Host)",
+      role: "Cohort Organizer",
+      pubkey: "Cr3at0r111111111111111111111111111111111111",
       lamportsBalance: 10n * LAMPORTS_PER_SOL,
     },
   };
@@ -122,7 +122,7 @@ export interface MockChainOptions {
 }
 
 export class MockChain implements ChainClient {
-  public readonly mode = 'mock' as const;
+  public readonly mode = "mock" as const;
   private state: MockChainState;
   private readonly persistEnabled: boolean;
   private readonly initialNow: number;
@@ -131,7 +131,9 @@ export class MockChain implements ChainClient {
 
   constructor(options: MockChainOptions = {}) {
     this.persistEnabled =
-      options.persist ?? (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined');
+      options.persist ??
+      (typeof window !== "undefined" &&
+        typeof window.localStorage !== "undefined");
     this.initialNow = options.initialNow ?? 1_762_516_800; // Fixed deterministic base epoch if needed
     this.seedDemoCohort = options.seedDemoCohort ?? false;
     this.state = this.loadOrInitState();
@@ -150,7 +152,7 @@ export class MockChain implements ChainClient {
   }
 
   private loadOrInitState(): MockChainState {
-    if (this.persistEnabled && typeof window !== 'undefined') {
+    if (this.persistEnabled && typeof window !== "undefined") {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
         if (raw) {
@@ -181,7 +183,7 @@ export class MockChain implements ChainClient {
     if (this.seedDemoCohort) {
       // Seed one default Rust Ownership cohort so the UI is populated out of the box
       const oraclePubkeyHex = getDemoOracleKeypair().publicKeyHex;
-      const cohortId = 'rust-ownership-101';
+      const cohortId = "rust-ownership-101";
       const stake = 500_000_000n; // 0.5 SOL
       const milestoneCount = 3;
       const interval = 7 * 86_400; // 7 days per milestone
@@ -199,7 +201,7 @@ export class MockChain implements ChainClient {
         completedBitmap: 0,
         milestones: Array.from({ length: milestoneCount }, (_, idx) => ({
           milestoneIdx: idx,
-          answerHash: '',
+          answerHash: "",
           commitTimestamp: 0,
           attemptCount: 0,
           completed: false,
@@ -214,12 +216,12 @@ export class MockChain implements ChainClient {
 
       fresh.cohorts[cohortId] = {
         id: cohortId,
-        title: 'Rust Ownership & Borrowing Bootcamp',
+        title: "Rust Ownership & Borrowing Bootcamp",
         description:
-          'Master stack vs. heap, move semantics, borrowing rules, and lifetimes across 3 graded milestones.',
-        creator: 'creator',
+          "Master stack vs. heap, move semantics, borrowing rules, and lifetimes across 3 graded milestones.",
+        creator: "creator",
         epoch: this.initialNow,
-        status: 'Active',
+        status: "Active",
         stake,
         milestoneCount,
         maxParticipants: 10,
@@ -232,9 +234,9 @@ export class MockChain implements ChainClient {
         startedAt: this.initialNow,
         lastOracleTs: 0,
         participants: {
-          alice: makeParticipant('alice'),
-          bob: makeParticipant('bob'),
-          carol: makeParticipant('carol'),
+          alice: makeParticipant("alice"),
+          bob: makeParticipant("bob"),
+          carol: makeParticipant("carol"),
         },
         vaultBalance: stake * 3n,
         totalDeposits: stake * 3n,
@@ -246,9 +248,12 @@ export class MockChain implements ChainClient {
   }
 
   private saveState(): void {
-    if (this.persistEnabled && typeof window !== 'undefined') {
+    if (this.persistEnabled && typeof window !== "undefined") {
       try {
-        window.localStorage.setItem(STORAGE_KEY, serializeWithBigInt(this.state));
+        window.localStorage.setItem(
+          STORAGE_KEY,
+          serializeWithBigInt(this.state)
+        );
       } catch {
         // Ignore quota errors in throwaway prototype
       }
@@ -258,11 +263,11 @@ export class MockChain implements ChainClient {
   private nextSignature(): string {
     const idx = this.state.txCounter++;
     const hash = hashAnswerText(`tx_${this.state.now}_${idx}`).slice(0, 44);
-    return `5PgP${idx.toString().padStart(4, '0')}${hash}`;
+    return `5PgP${idx.toString().padStart(4, "0")}${hash}`;
   }
 
   private logTx(
-    entry: Omit<SimulatedTransactionLog, 'signature' | 'timestamp'>
+    entry: Omit<SimulatedTransactionLog, "signature" | "timestamp">
   ): SimulatedTransactionLog {
     const tx: SimulatedTransactionLog = {
       ...entry,
@@ -274,7 +279,7 @@ export class MockChain implements ChainClient {
   }
 
   private fail(
-    instruction: SimulatedTransactionLog['instruction'],
+    instruction: SimulatedTransactionLog["instruction"],
     caller: string,
     code: ChainErrorCode,
     message: string,
@@ -284,7 +289,7 @@ export class MockChain implements ChainClient {
       instruction,
       caller,
       cohortId,
-      status: 'ERROR',
+      status: "ERROR",
       errorCode: code,
       summary: `${instruction} rejected (${code}): ${message}`,
       details: { errorCode: code, message },
@@ -298,10 +303,10 @@ export class MockChain implements ChainClient {
    * now > last deadline + grace.
    */
   private syncCohortLifecycle(cohort: CohortAccount): void {
-    if (cohort.status === 'Active') {
+    if (cohort.status === "Active") {
       const lastDeadline = cohort.deadlines[cohort.milestoneCount - 1];
       if (this.state.now > lastDeadline + cohort.gracePeriodSeconds) {
-        cohort.status = 'Settling';
+        cohort.status = "Settling";
       }
     }
   }
@@ -354,20 +359,20 @@ export class MockChain implements ChainClient {
     now: number = this.state.now
   ): MilestoneOutcome {
     const participant = cohort.participants[user];
-    if (!participant) return 'PENDING';
+    if (!participant) return "PENDING";
     const record = participant.milestones[milestoneIdx];
-    if (!record) return 'PENDING';
+    if (!record) return "PENDING";
 
     const bitSet = (participant.completedBitmap & (1 << milestoneIdx)) !== 0;
     if (record.completed || bitSet) {
-      return 'PASSED';
+      return "PASSED";
     }
 
     const deadline = cohort.deadlines[milestoneIdx];
     const windowClose = deadline + cohort.gracePeriodSeconds;
 
     if (now <= windowClose) {
-      return record.attemptCount > 0 ? 'COMMITTED' : 'PENDING';
+      return record.attemptCount > 0 ? "COMMITTED" : "PENDING";
     }
 
     // Window has closed (now > deadline[i] + grace)
@@ -377,19 +382,19 @@ export class MockChain implements ChainClient {
       record.commitTimestamp <= 0 ||
       record.commitTimestamp > deadline
     ) {
-      return 'MISSED';
+      return "MISSED";
     }
 
     if (record.failedGradeScore !== undefined && record.failedGradeScore < 75) {
-      return 'MISSED';
+      return "MISSED";
     }
 
     const lastOracleTs = cohort.lastOracleTs ?? 0;
     if (lastOracleTs < record.commitTimestamp) {
-      return 'NEUTRAL';
+      return "NEUTRAL";
     }
 
-    return 'MISSED';
+    return "MISSED";
   }
 
   private tallyParticipantOutcomes(
@@ -400,13 +405,14 @@ export class MockChain implements ChainClient {
     let passedCount = 0;
     for (let i = 0; i < cohort.milestoneCount; i++) {
       const outcome = this.getMilestoneOutcome(cohort, user, i, this.state.now);
-      if (outcome === 'MISSED') missedCount++;
-      if (outcome === 'PASSED') passedCount++;
+      if (outcome === "MISSED") missedCount++;
+      if (outcome === "PASSED") passedCount++;
     }
     return {
       missedCount,
       passedCount,
-      eligibleForReward: passedCount === cohort.milestoneCount && missedCount === 0,
+      eligibleForReward:
+        passedCount === cohort.milestoneCount && missedCount === 0,
     };
   }
 
@@ -422,7 +428,10 @@ export class MockChain implements ChainClient {
       this.state.yieldAprBps,
       elapsedSeconds
     );
-    const lenderLoss = computeLenderLoss(cohort.totalDeposits, this.state.lenderLossBps);
+    const lenderLoss = computeLenderLoss(
+      cohort.totalDeposits,
+      this.state.lenderLossBps
+    );
     return { simulatedYield, lenderLoss };
   }
 
@@ -432,25 +441,37 @@ export class MockChain implements ChainClient {
   public computeLiveEconomics(cohortId: string): EconomicsResult {
     const cohort = this.getCohort(cohortId);
     if (!cohort) {
-      throw new ChainProgramError('WrongCohort', `Cohort "${cohortId}" not found.`);
+      throw new ChainProgramError(
+        "WrongCohort",
+        `Cohort "${cohortId}" not found.`
+      );
     }
-    if (cohort.status === 'Finalized' && cohort.economicsSnapshot) {
+    if (cohort.status === "Finalized" && cohort.economicsSnapshot) {
       return cohort.economicsSnapshot;
     }
 
     const participantsList = Object.values(cohort.participants).map((p) => {
-      const { missedCount, eligibleForReward } = this.tallyParticipantOutcomes(cohort, p.user);
+      const { missedCount, eligibleForReward } = this.tallyParticipantOutcomes(
+        cohort,
+        p.user
+      );
       return {
         user: p.user,
         stake: p.stake,
-        missedCount: p.settled && p.missedCount !== undefined ? p.missedCount : missedCount,
+        missedCount:
+          p.settled && p.missedCount !== undefined
+            ? p.missedCount
+            : missedCount,
         eligible:
-          p.settled && p.eligibleForReward !== undefined ? p.eligibleForReward : eligibleForReward,
+          p.settled && p.eligibleForReward !== undefined
+            ? p.eligibleForReward
+            : eligibleForReward,
         bountyPaid: p.settled ? p.bountyPaid : undefined,
       };
     });
 
-    const { simulatedYield, lenderLoss } = this.computeCohortYieldAndLoss(cohort);
+    const { simulatedYield, lenderLoss } =
+      this.computeCohortYieldAndLoss(cohort);
 
     return computeCohortEconomics({
       milestoneCount: cohort.milestoneCount,
@@ -463,9 +484,9 @@ export class MockChain implements ChainClient {
   private ensurePersona(user: string): PersonaAccount {
     if (!this.state.personas[user]) {
       this.state.personas[user] = {
-        id: user as PersonaAccount['id'],
+        id: user as PersonaAccount["id"],
         name: user,
-        role: 'Participant',
+        role: "Participant",
         pubkey: `${user}_pubkey`,
         lamportsBalance: 10n * LAMPORTS_PER_SOL,
       };
@@ -481,10 +502,20 @@ export class MockChain implements ChainClient {
 
     const milestoneCount = intent.milestoneCount;
     if (milestoneCount < 2 || milestoneCount > 10) {
-      this.fail('create_cohort', creator, 'CohortNotOpen', 'milestoneCount must be 2..10');
+      this.fail(
+        "create_cohort",
+        creator,
+        "CohortNotOpen",
+        "milestoneCount must be 2..10"
+      );
     }
     if (intent.maxParticipants < 2 || intent.maxParticipants > 50) {
-      this.fail('create_cohort', creator, 'CohortNotOpen', 'maxParticipants must be 2..50');
+      this.fail(
+        "create_cohort",
+        creator,
+        "CohortNotOpen",
+        "maxParticipants must be 2..50"
+      );
     }
 
     const stake =
@@ -496,8 +527,8 @@ export class MockChain implements ChainClient {
       intent.id ??
       intent.title
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '')
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "")
         .slice(0, 28);
     const id = this.state.cohorts[slugBase]
       ? `${slugBase}-${this.state.txCounter}`
@@ -507,7 +538,10 @@ export class MockChain implements ChainClient {
     const totalSeconds = intent.demoFastMode
       ? milestoneCount * 120 // 2 minutes per milestone in Demo Fast Mode
       : intent.durationDays * 86_400;
-    const intervalSeconds = Math.max(60, Math.floor(totalSeconds / milestoneCount));
+    const intervalSeconds = Math.max(
+      60,
+      Math.floor(totalSeconds / milestoneCount)
+    );
     const gracePeriodSeconds =
       intent.gracePeriodSeconds ?? (intent.demoFastMode ? 60 : 86_400);
 
@@ -520,7 +554,9 @@ export class MockChain implements ChainClient {
     const trimmedCustomMaterial = intent.customMaterialText?.trim();
     const resolvedContentHash =
       intent.contentHash ??
-      (trimmedCustomMaterial ? hashAnswerText(trimmedCustomMaterial) : DEFAULT_CONTENT_HASH);
+      (trimmedCustomMaterial
+        ? hashAnswerText(trimmedCustomMaterial)
+        : DEFAULT_CONTENT_HASH);
 
     const cohort: CohortAccount = {
       id,
@@ -530,7 +566,7 @@ export class MockChain implements ChainClient {
         `${milestoneCount}-milestone study cohort with ${formatSol(stake)} stake.`,
       creator,
       epoch,
-      status: 'Open',
+      status: "Open",
       stake,
       milestoneCount,
       maxParticipants: intent.maxParticipants,
@@ -551,10 +587,10 @@ export class MockChain implements ChainClient {
     this.state.cohorts[id] = cohort;
 
     const tx = this.logTx({
-      instruction: 'create_cohort',
+      instruction: "create_cohort",
       caller: creator,
       cohortId: id,
-      status: 'SUCCESS',
+      status: "SUCCESS",
       summary: `Created cohort "${cohort.title}" (${milestoneCount} milestones, stake ${formatSol(stake)})`,
       details: {
         cohortId: id,
@@ -571,17 +607,26 @@ export class MockChain implements ChainClient {
     return { tx, data: cohort };
   }
 
-  public async join(user: string, cohortId: string): Promise<TxResult<CohortAccount>> {
+  public async join(
+    user: string,
+    cohortId: string
+  ): Promise<TxResult<CohortAccount>> {
     const cohort = this.getCohort(cohortId);
     if (!cohort) {
-      this.fail('join', user, 'WrongCohort', `Cohort "${cohortId}" does not exist.`, cohortId);
+      this.fail(
+        "join",
+        user,
+        "WrongCohort",
+        `Cohort "${cohortId}" does not exist.`,
+        cohortId
+      );
     }
 
-    if (cohort.status !== 'Open') {
+    if (cohort.status !== "Open") {
       this.fail(
-        'join',
+        "join",
         user,
-        'CohortNotOpen',
+        "CohortNotOpen",
         `Cohort "${cohortId}" is ${cohort.status}; joins are only allowed while Open.`,
         cohortId
       );
@@ -590,24 +635,30 @@ export class MockChain implements ChainClient {
     const currentCount = Object.keys(cohort.participants).length;
     if (currentCount >= cohort.maxParticipants) {
       this.fail(
-        'join',
+        "join",
         user,
-        'CohortFull',
+        "CohortFull",
         `Cohort "${cohortId}" has reached maxParticipants (${cohort.maxParticipants}).`,
         cohortId
       );
     }
 
     if (cohort.participants[user]) {
-      this.fail('join', user, 'AlreadyJoined', `User "${user}" already joined cohort.`, cohortId);
+      this.fail(
+        "join",
+        user,
+        "AlreadyJoined",
+        `User "${user}" already joined cohort.`,
+        cohortId
+      );
     }
 
     const persona = this.ensurePersona(user);
     if (persona.lamportsBalance < cohort.stake) {
       this.fail(
-        'join',
+        "join",
         user,
-        'InsufficientBalance',
+        "InsufficientBalance",
         `User "${user}" has ${formatSol(persona.lamportsBalance)}, needs ${formatSol(cohort.stake)}.`,
         cohortId
       );
@@ -624,7 +675,7 @@ export class MockChain implements ChainClient {
       completedBitmap: 0,
       milestones: Array.from({ length: cohort.milestoneCount }, (_, idx) => ({
         milestoneIdx: idx,
-        answerHash: '',
+        answerHash: "",
         commitTimestamp: 0,
         attemptCount: 0,
         completed: false,
@@ -634,10 +685,10 @@ export class MockChain implements ChainClient {
     };
 
     const tx = this.logTx({
-      instruction: 'join',
+      instruction: "join",
       caller: user,
       cohortId,
-      status: 'SUCCESS',
+      status: "SUCCESS",
       summary: `${user} joined "${cohort.title}" and staked ${formatSol(cohort.stake)}`,
       details: {
         user,
@@ -651,16 +702,25 @@ export class MockChain implements ChainClient {
     return { tx, data: cohort };
   }
 
-  public async startCohort(caller: string, cohortId: string): Promise<TxResult<CohortAccount>> {
+  public async startCohort(
+    caller: string,
+    cohortId: string
+  ): Promise<TxResult<CohortAccount>> {
     const cohort = this.getCohort(cohortId);
     if (!cohort) {
-      this.fail('start_cohort', caller, 'WrongCohort', `Cohort "${cohortId}" not found.`, cohortId);
-    }
-    if (cohort.status !== 'Open') {
       this.fail(
-        'start_cohort',
+        "start_cohort",
         caller,
-        'CohortNotOpen',
+        "WrongCohort",
+        `Cohort "${cohortId}" not found.`,
+        cohortId
+      );
+    }
+    if (cohort.status !== "Open") {
+      this.fail(
+        "start_cohort",
+        caller,
+        "CohortNotOpen",
         `Cohort is already ${cohort.status}.`,
         cohortId
       );
@@ -668,18 +728,18 @@ export class MockChain implements ChainClient {
     const participantCount = Object.keys(cohort.participants).length;
     if (participantCount < 2) {
       this.fail(
-        'start_cohort',
+        "start_cohort",
         caller,
-        'MinParticipantsNotMet',
+        "MinParticipantsNotMet",
         `At least 2 participants required to start cohort (currently ${participantCount}).`,
         cohortId
       );
     }
     if (caller !== cohort.creator && !cohort.participants[caller]) {
       this.fail(
-        'start_cohort',
+        "start_cohort",
         caller,
-        'WrongUser',
+        "WrongUser",
         `Caller "${caller}" must be the cohort creator or a joined participant to start cohort "${cohortId}".`,
         cohortId
       );
@@ -692,13 +752,13 @@ export class MockChain implements ChainClient {
       { length: cohort.milestoneCount },
       (_, idx) => this.state.now + firstInterval * (idx + 1)
     );
-    cohort.status = 'Active';
+    cohort.status = "Active";
 
     const tx = this.logTx({
-      instruction: 'start_cohort',
+      instruction: "start_cohort",
       caller,
       cohortId,
-      status: 'SUCCESS',
+      status: "SUCCESS",
       summary: `Started cohort "${cohort.title}" with ${participantCount} participants`,
       details: {
         startedAt: cohort.startedAt,
@@ -721,24 +781,24 @@ export class MockChain implements ChainClient {
     const cohort = this.getCohort(cohortId);
     if (!cohort) {
       this.fail(
-        'commit_submission',
+        "commit_submission",
         user,
-        'WrongCohort',
+        "WrongCohort",
         `Cohort "${cohortId}" not found.`,
         cohortId
       );
     }
 
     // If cohort is still Open and has >= 2 participants, allow auto-activation or require Active
-    if (cohort.status === 'Open') {
+    if (cohort.status === "Open") {
       if (Object.keys(cohort.participants).length >= 2) {
         await this.startCohort(cohort.creator, cohortId);
       } else {
         this.fail(
-          'commit_submission',
+          "commit_submission",
           user,
-          'CohortNotOpen',
-          'Cohort has not started yet (needs at least 2 participants).',
+          "CohortNotOpen",
+          "Cohort has not started yet (needs at least 2 participants).",
           cohortId
         );
       }
@@ -747,9 +807,9 @@ export class MockChain implements ChainClient {
     const participant = cohort.participants[user];
     if (!participant) {
       this.fail(
-        'commit_submission',
+        "commit_submission",
         user,
-        'WrongUser',
+        "WrongUser",
         `User "${user}" is not a participant in cohort "${cohortId}".`,
         cohortId
       );
@@ -758,19 +818,22 @@ export class MockChain implements ChainClient {
     const record = participant.milestones[milestoneIdx];
     if (!record) {
       this.fail(
-        'commit_submission',
+        "commit_submission",
         user,
-        'SubmissionWindowClosed',
+        "SubmissionWindowClosed",
         `Invalid milestone index ${milestoneIdx}.`,
         cohortId
       );
     }
 
-    if (record.completed || (participant.completedBitmap & (1 << milestoneIdx)) !== 0) {
+    if (
+      record.completed ||
+      (participant.completedBitmap & (1 << milestoneIdx)) !== 0
+    ) {
       this.fail(
-        'commit_submission',
+        "commit_submission",
         user,
-        'AlreadyCompleted',
+        "AlreadyCompleted",
         `Milestone ${milestoneIdx + 1} is already completed for ${user}.`,
         cohortId
       );
@@ -779,9 +842,9 @@ export class MockChain implements ChainClient {
     const deadline = cohort.deadlines[milestoneIdx];
     if (this.state.now > deadline) {
       this.fail(
-        'commit_submission',
+        "commit_submission",
         user,
-        'SubmissionWindowClosed',
+        "SubmissionWindowClosed",
         `Commit window for milestone ${milestoneIdx + 1} closed at ${deadline} (now=${this.state.now}).`,
         cohortId
       );
@@ -789,9 +852,9 @@ export class MockChain implements ChainClient {
 
     if (record.attemptCount >= MAX_COMMIT_ATTEMPTS) {
       this.fail(
-        'commit_submission',
+        "commit_submission",
         user,
-        'MaxAttemptsExceeded',
+        "MaxAttemptsExceeded",
         `Maximum of ${MAX_COMMIT_ATTEMPTS} commit attempts reached for milestone ${milestoneIdx + 1}.`,
         cohortId
       );
@@ -804,10 +867,10 @@ export class MockChain implements ChainClient {
     record.failedGradeScore = undefined;
 
     const tx = this.logTx({
-      instruction: 'commit_submission',
+      instruction: "commit_submission",
       caller: user,
       cohortId,
-      status: 'SUCCESS',
+      status: "SUCCESS",
       summary: `${user} committed answer hash for M${milestoneIdx + 1} (attempt ${record.attemptCount}/${MAX_COMMIT_ATTEMPTS})`,
       details: {
         milestoneIdx,
@@ -830,19 +893,22 @@ export class MockChain implements ChainClient {
     const cohort = this.getCohort(cohortId);
     if (!cohort) {
       this.fail(
-        'complete_milestone',
+        "complete_milestone",
         caller,
-        'WrongCohort',
+        "WrongCohort",
         `Cohort "${cohortId}" not found.`,
         cohortId
       );
     }
 
-    if (attestation.cohortId !== cohort.id || attestation.cohortEpoch !== cohort.epoch) {
+    if (
+      attestation.cohortId !== cohort.id ||
+      attestation.cohortEpoch !== cohort.epoch
+    ) {
       this.fail(
-        'complete_milestone',
+        "complete_milestone",
         caller,
-        'WrongCohort',
+        "WrongCohort",
         `Attestation cohort (${attestation.cohortId}) does not match target cohort (${cohort.id}).`,
         cohortId
       );
@@ -850,9 +916,9 @@ export class MockChain implements ChainClient {
 
     if (attestation.user !== caller) {
       this.fail(
-        'complete_milestone',
+        "complete_milestone",
         caller,
-        'WrongUser',
+        "WrongUser",
         `Attestation is for user "${attestation.user}", cannot be submitted for "${caller}".`,
         cohortId
       );
@@ -861,9 +927,9 @@ export class MockChain implements ChainClient {
     const participant = cohort.participants[caller];
     if (!participant) {
       this.fail(
-        'complete_milestone',
+        "complete_milestone",
         caller,
-        'WrongUser',
+        "WrongUser",
         `User "${caller}" is not a participant in cohort "${cohortId}".`,
         cohortId
       );
@@ -872,20 +938,23 @@ export class MockChain implements ChainClient {
     const record = participant.milestones[milestoneIdx];
     if (!record) {
       this.fail(
-        'complete_milestone',
+        "complete_milestone",
         caller,
-        'SubmissionWindowClosed',
+        "SubmissionWindowClosed",
         `Invalid milestone index ${milestoneIdx}.`,
         cohortId
       );
     }
 
     // Check bitmap / completion status first so replay attempts return AlreadyCompleted
-    if (record.completed || (participant.completedBitmap & (1 << milestoneIdx)) !== 0) {
+    if (
+      record.completed ||
+      (participant.completedBitmap & (1 << milestoneIdx)) !== 0
+    ) {
       this.fail(
-        'complete_milestone',
+        "complete_milestone",
         caller,
-        'AlreadyCompleted',
+        "AlreadyCompleted",
         `Milestone ${milestoneIdx + 1} is already completed (bitmap=${participant.completedBitmap.toString(2)}).`,
         cohortId
       );
@@ -893,9 +962,9 @@ export class MockChain implements ChainClient {
 
     if (record.attemptCount === 0 || !record.answerHash) {
       this.fail(
-        'complete_milestone',
+        "complete_milestone",
         caller,
-        'NotCommitted',
+        "NotCommitted",
         `No committed submission found for ${caller} on milestone ${milestoneIdx + 1}.`,
         cohortId
       );
@@ -905,9 +974,9 @@ export class MockChain implements ChainClient {
     const graceEnd = deadline + cohort.gracePeriodSeconds;
     if (record.commitTimestamp > deadline || this.state.now > graceEnd) {
       this.fail(
-        'complete_milestone',
+        "complete_milestone",
         caller,
-        'SubmissionWindowClosed',
+        "SubmissionWindowClosed",
         `Completion window closed at ${graceEnd} (now=${this.state.now}).`,
         cohortId
       );
@@ -927,7 +996,13 @@ export class MockChain implements ChainClient {
       });
     } catch (err) {
       if (err instanceof ChainProgramError) {
-        this.fail('complete_milestone', caller, err.code, err.message, cohortId);
+        this.fail(
+          "complete_milestone",
+          caller,
+          err.code,
+          err.message,
+          cohortId
+        );
       }
       throw err;
     }
@@ -940,16 +1015,16 @@ export class MockChain implements ChainClient {
     cohort.lastOracleTs = this.state.now;
 
     const tx = this.logTx({
-      instruction: 'complete_milestone',
+      instruction: "complete_milestone",
       caller,
       cohortId,
-      status: 'SUCCESS',
+      status: "SUCCESS",
       summary: `${caller} completed M${milestoneIdx + 1} with verified oracle attestation (score ${attestation.score}/100)`,
       details: {
         milestoneIdx,
         score: attestation.score,
         lastOracleTs: cohort.lastOracleTs,
-        completedBitmap: `0b${participant.completedBitmap.toString(2).padStart(cohort.milestoneCount, '0')}`,
+        completedBitmap: `0b${participant.completedBitmap.toString(2).padStart(cohort.milestoneCount, "0")}`,
       },
     });
 
@@ -961,19 +1036,27 @@ export class MockChain implements ChainClient {
     caller: string,
     cohortId: string,
     targetUser: string
-  ): Promise<TxResult<{ missedCount: number; forfeit: bigint; bounty: bigint }>> {
+  ): Promise<
+    TxResult<{ missedCount: number; forfeit: bigint; bounty: bigint }>
+  > {
     const cohort = this.getCohort(cohortId);
     if (!cohort) {
-      this.fail('settle_user', caller, 'WrongCohort', `Cohort "${cohortId}" not found.`, cohortId);
+      this.fail(
+        "settle_user",
+        caller,
+        "WrongCohort",
+        `Cohort "${cohortId}" not found.`,
+        cohortId
+      );
     }
 
     const lastDeadline = cohort.deadlines[cohort.milestoneCount - 1];
     const settleWindowStart = lastDeadline + cohort.gracePeriodSeconds;
     if (this.state.now <= settleWindowStart) {
       this.fail(
-        'settle_user',
+        "settle_user",
         caller,
-        'SettlementTooEarly',
+        "SettlementTooEarly",
         `Cannot settle before last milestone grace window closes at ${settleWindowStart} (now=${this.state.now}).`,
         cohortId
       );
@@ -982,9 +1065,9 @@ export class MockChain implements ChainClient {
     const participant = cohort.participants[targetUser];
     if (!participant) {
       this.fail(
-        'settle_user',
+        "settle_user",
         caller,
-        'WrongUser',
+        "WrongUser",
         `User "${targetUser}" is not in cohort "${cohortId}".`,
         cohortId
       );
@@ -992,16 +1075,23 @@ export class MockChain implements ChainClient {
 
     if (participant.settled) {
       this.fail(
-        'settle_user',
+        "settle_user",
         caller,
-        'AlreadySettled',
+        "AlreadySettled",
         `User "${targetUser}" has already been settled.`,
         cohortId
       );
     }
 
-    const { missedCount, eligibleForReward } = this.tallyParticipantOutcomes(cohort, targetUser);
-    const forfeit = computeForfeit(participant.stake, missedCount, cohort.milestoneCount);
+    const { missedCount, eligibleForReward } = this.tallyParticipantOutcomes(
+      cohort,
+      targetUser
+    );
+    const forfeit = computeForfeit(
+      participant.stake,
+      missedCount,
+      cohort.milestoneCount
+    );
     const bounty = computeSettleBounty(forfeit);
     const netForfeit = forfeit - bounty;
 
@@ -1021,10 +1111,10 @@ export class MockChain implements ChainClient {
     cohort.totalBountiesPaid += bounty;
 
     const tx = this.logTx({
-      instruction: 'settle_user',
+      instruction: "settle_user",
       caller,
       cohortId,
-      status: 'SUCCESS',
+      status: "SUCCESS",
       summary: `${caller} settled ${targetUser}: ${missedCount}/${cohort.milestoneCount} missed, forfeit ${formatSol(forfeit)}, caller bounty ${formatSol(bounty)}`,
       details: {
         targetUser,
@@ -1040,40 +1130,56 @@ export class MockChain implements ChainClient {
     return { tx, data: { missedCount, forfeit, bounty } };
   }
 
-  public async finalize(caller: string, cohortId: string): Promise<TxResult<EconomicsResult>> {
+  public async finalize(
+    caller: string,
+    cohortId: string
+  ): Promise<TxResult<EconomicsResult>> {
     const cohort = this.getCohort(cohortId);
     if (!cohort) {
-      this.fail('finalize', caller, 'WrongCohort', `Cohort "${cohortId}" not found.`, cohortId);
+      this.fail(
+        "finalize",
+        caller,
+        "WrongCohort",
+        `Cohort "${cohortId}" not found.`,
+        cohortId
+      );
     }
 
     const lastDeadline = cohort.deadlines[cohort.milestoneCount - 1];
     if (this.state.now <= lastDeadline + cohort.gracePeriodSeconds) {
       this.fail(
-        'finalize',
+        "finalize",
         caller,
-        'SettlementTooEarly',
-        'Cannot finalize before the final milestone window closes.',
+        "SettlementTooEarly",
+        "Cannot finalize before the final milestone window closes.",
         cohortId
       );
     }
 
-    if (cohort.status === 'Finalized') {
-      this.fail('finalize', caller, 'AlreadyFinalized', 'Cohort is already finalized.', cohortId);
+    if (cohort.status === "Finalized") {
+      this.fail(
+        "finalize",
+        caller,
+        "AlreadyFinalized",
+        "Cohort is already finalized.",
+        cohortId
+      );
     }
 
     const participants = Object.values(cohort.participants);
     const unsettled = participants.find((p) => !p.settled);
     if (unsettled) {
       this.fail(
-        'finalize',
+        "finalize",
         caller,
-        'NotAllUsersSettled',
+        "NotAllUsersSettled",
         `Cannot finalize until all participants are settled ("${unsettled.user}" is unsettled).`,
         cohortId
       );
     }
 
-    const { simulatedYield, lenderLoss } = this.computeCohortYieldAndLoss(cohort);
+    const { simulatedYield, lenderLoss } =
+      this.computeCohortYieldAndLoss(cohort);
 
     const econ = computeCohortEconomics({
       milestoneCount: cohort.milestoneCount,
@@ -1090,7 +1196,7 @@ export class MockChain implements ChainClient {
 
     cohort.vaultBalance = econ.assets;
     cohort.economicsSnapshot = econ;
-    cohort.status = 'Finalized';
+    cohort.status = "Finalized";
     cohort.finalizedAt = this.state.now;
 
     for (const breakdown of econ.participants) {
@@ -1101,10 +1207,10 @@ export class MockChain implements ChainClient {
     }
 
     const tx = this.logTx({
-      instruction: 'finalize',
+      instruction: "finalize",
       caller,
       cohortId,
-      status: 'SUCCESS',
+      status: "SUCCESS",
       summary: `Finalized "${cohort.title}": pool ${formatSol(econ.pool)}, fee ${formatSol(econ.fee)}, dust ${formatSol(econ.dust)}`,
       details: {
         assets: formatSol(econ.assets),
@@ -1120,17 +1226,26 @@ export class MockChain implements ChainClient {
     return { tx, data: econ };
   }
 
-  public async claim(user: string, cohortId: string): Promise<TxResult<{ payout: bigint }>> {
+  public async claim(
+    user: string,
+    cohortId: string
+  ): Promise<TxResult<{ payout: bigint }>> {
     const cohort = this.getCohort(cohortId);
     if (!cohort) {
-      this.fail('claim', user, 'WrongCohort', `Cohort "${cohortId}" not found.`, cohortId);
+      this.fail(
+        "claim",
+        user,
+        "WrongCohort",
+        `Cohort "${cohortId}" not found.`,
+        cohortId
+      );
     }
 
-    if (cohort.status !== 'Finalized') {
+    if (cohort.status !== "Finalized") {
       this.fail(
-        'claim',
+        "claim",
         user,
-        'NotFinalized',
+        "NotFinalized",
         `Cannot claim while cohort status is ${cohort.status} (must be Finalized).`,
         cohortId
       );
@@ -1139,9 +1254,9 @@ export class MockChain implements ChainClient {
     const participant = cohort.participants[user];
     if (!participant) {
       this.fail(
-        'claim',
+        "claim",
         user,
-        'WrongUser',
+        "WrongUser",
         `User "${user}" is not a participant in cohort "${cohortId}".`,
         cohortId
       );
@@ -1149,9 +1264,9 @@ export class MockChain implements ChainClient {
 
     if (participant.claimed) {
       this.fail(
-        'claim',
+        "claim",
         user,
-        'AlreadyClaimed',
+        "AlreadyClaimed",
         `User "${user}" has already claimed their payout for cohort "${cohortId}".`,
         cohortId
       );
@@ -1163,13 +1278,14 @@ export class MockChain implements ChainClient {
 
     const persona = this.ensurePersona(user);
     persona.lamportsBalance += payout;
-    cohort.vaultBalance = cohort.vaultBalance >= payout ? cohort.vaultBalance - payout : 0n;
+    cohort.vaultBalance =
+      cohort.vaultBalance >= payout ? cohort.vaultBalance - payout : 0n;
 
     const tx = this.logTx({
-      instruction: 'claim',
+      instruction: "claim",
       caller: user,
       cohortId,
-      status: 'SUCCESS',
+      status: "SUCCESS",
       summary: `${user} claimed ${formatSol(payout)} from "${cohort.title}"`,
       details: {
         user,
@@ -1190,9 +1306,9 @@ export class MockChain implements ChainClient {
     persona.lamportsBalance += amountLamports;
 
     const tx = this.logTx({
-      instruction: 'faucet',
+      instruction: "faucet",
       caller: user,
-      status: 'SUCCESS',
+      status: "SUCCESS",
       summary: `Airdropped ${formatSol(amountLamports)} test SOL to ${persona.name}`,
       details: {
         user,
@@ -1256,7 +1372,7 @@ export class MockChain implements ChainClient {
   }
 
   public resetState(): void {
-    if (this.persistEnabled && typeof window !== 'undefined') {
+    if (this.persistEnabled && typeof window !== "undefined") {
       try {
         window.localStorage.removeItem(STORAGE_KEY);
       } catch {

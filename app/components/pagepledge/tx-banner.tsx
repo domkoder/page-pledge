@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -8,8 +8,8 @@ import {
   ChevronUp,
   Terminal,
   X,
-} from 'lucide-react';
-import { SimulatedTransactionLog } from '@/lib/chain';
+} from "lucide-react";
+import { SimulatedTransactionLog } from "@/lib/chain";
 
 export function SimulatedTxBanner({
   tx,
@@ -22,14 +22,14 @@ export function SimulatedTxBanner({
 
   if (!tx) return null;
 
-  const isSuccess = tx.status === 'SUCCESS';
+  const isSuccess = tx.status === "SUCCESS";
 
   return (
     <div
       className={`mb-5 rounded-xl border px-4 py-3 transition-all ${
         isSuccess
-          ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-950 dark:text-emerald-100'
-          : 'border-rose-500/40 bg-rose-500/10 text-rose-950 dark:text-rose-100'
+          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-950 dark:text-emerald-100"
+          : "border-rose-500/40 bg-rose-500/10 text-rose-950 dark:text-rose-100"
       }`}
       role="status"
       aria-live="polite"
@@ -62,8 +62,12 @@ export function SimulatedTxBanner({
             className="inline-flex items-center gap-1 rounded-md border border-current/20 px-2 py-1 text-[11px] font-medium hover:bg-black/5 dark:hover:bg-white/5"
           >
             <Terminal className="h-3 w-3" />
-            {expanded ? 'Hide Tx' : 'Inspect Tx'}
-            {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            {expanded ? "Hide Tx" : "Inspect Tx"}
+            {expanded ? (
+              <ChevronUp className="h-3 w-3" />
+            ) : (
+              <ChevronDown className="h-3 w-3" />
+            )}
           </button>
           {onDismiss && (
             <button
@@ -83,7 +87,10 @@ export function SimulatedTxBanner({
           <div className="mb-1 flex flex-wrap justify-between gap-2 border-b border-neutral-800 pb-1.5 text-[11px] text-neutral-400">
             <span>Signature: {tx.signature}</span>
             <span>Caller: {tx.caller}</span>
-            <span>Simulated Block Time: {new Date(tx.timestamp * 1000).toISOString()}</span>
+            <span>
+              Simulated Block Time:{" "}
+              {new Date(tx.timestamp * 1000).toISOString()}
+            </span>
           </div>
           <pre className="overflow-x-auto text-[11px] leading-relaxed text-emerald-300">
             {JSON.stringify(tx.details, null, 2)}

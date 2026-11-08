@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { MOCK_COHORTS, MOCK_QUIZ_QUESTIONS, CohortMock } from "./mock-data";
 
 export function VariantA() {
-  const [selectedCohort, setSelectedCohort] = useState<CohortMock>(MOCK_COHORTS[0]);
+  const [selectedCohort, setSelectedCohort] = useState<CohortMock>(
+    MOCK_COHORTS[0]
+  );
   const [inQuiz, setInQuiz] = useState(false);
   const [attempt, setAttempt] = useState(1);
   const [secondsLeft, setSecondsLeft] = useState(600); // 10 min
@@ -54,10 +56,16 @@ export function VariantA() {
             Active Multi-Cohort Stake
           </span>
           <h2 className="text-3xl font-extrabold tracking-tight mt-1">
-            4.00 <span className="text-lg font-normal text-muted">SOL Total Committed</span>
+            4.00{" "}
+            <span className="text-lg font-normal text-muted">
+              SOL Total Committed
+            </span>
           </h2>
           <p className="text-xs text-neutral-500 mt-1">
-            2 active commitments • Next milestone due in <span className="text-amber-500 font-semibold font-mono">18m 20s</span>
+            2 active commitments • Next milestone due in{" "}
+            <span className="text-amber-500 font-semibold font-mono">
+              18m 20s
+            </span>
           </p>
         </div>
         <div className="flex gap-2">
@@ -103,7 +111,9 @@ export function VariantA() {
                       </span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-neutral-500">Cohort Vault Pool</span>
+                      <span className="text-neutral-500">
+                        Cohort Vault Pool
+                      </span>
                       <span className="font-mono text-neutral-700 dark:text-neutral-300">
                         {cohort.totalPledgedSol} SOL
                       </span>
@@ -111,7 +121,8 @@ export function VariantA() {
                     <div className="flex justify-between text-xs">
                       <span className="text-neutral-500">Progress</span>
                       <span className="font-mono font-medium">
-                        {cohort.currentMilestoneIndex} / {cohort.totalMilestones} Milestones
+                        {cohort.currentMilestoneIndex} /{" "}
+                        {cohort.totalMilestones} Milestones
                       </span>
                     </div>
                   </div>
@@ -125,7 +136,9 @@ export function VariantA() {
                       <div className="mt-1 flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-mono text-[11px]">
                         <span>⏳ Due in 18 min</span>
                         <span>•</span>
-                        <span>Forfeit: {(cohort.forfeitBps / 100).toFixed(0)}%</span>
+                        <span>
+                          Forfeit: {(cohort.forfeitBps / 100).toFixed(0)}%
+                        </span>
                       </div>
                     )}
                   </div>
@@ -159,11 +172,15 @@ export function VariantA() {
           <div className="flex items-center justify-between pb-6 border-b border-neutral-200 dark:border-neutral-800">
             <div>
               <span className="text-xs uppercase font-mono tracking-wider text-amber-500 font-bold">
-                {selectedCohort.title} • Milestone {selectedCohort.currentMilestoneIndex}
+                {selectedCohort.title} • Milestone{" "}
+                {selectedCohort.currentMilestoneIndex}
               </span>
-              <h2 className="text-2xl font-black mt-1">AI Comprehension & Citation Verification</h2>
+              <h2 className="text-2xl font-black mt-1">
+                AI Comprehension & Citation Verification
+              </h2>
               <p className="text-xs text-neutral-500">
-                Attempt {attempt} of 3 • Passing requires ≥70% + valid textual citations
+                Attempt {attempt} of 3 • Passing requires ≥70% + valid textual
+                citations
               </p>
             </div>
 
@@ -172,7 +189,9 @@ export function VariantA() {
               <span className="text-xs text-neutral-400">Quiz Timer</span>
               <span
                 className={`text-2xl font-black tracking-tight ${
-                  secondsLeft < 120 ? "text-rose-500 animate-pulse" : "text-amber-500"
+                  secondsLeft < 120
+                    ? "text-rose-500 animate-pulse"
+                    : "text-amber-500"
                 }`}
               >
                 {formatTime(secondsLeft)}
@@ -183,8 +202,12 @@ export function VariantA() {
           {/* Assigned Material Reference Drawer */}
           <div className="my-6 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs">
             <div className="font-semibold text-amber-600 dark:text-amber-400 mb-1 flex items-center justify-between">
-              <span>📖 Milestone Assigned Material Snippet (Hash: 8a9f...3e01)</span>
-              <span className="font-mono text-[10px] text-neutral-400">On-Chain Verified</span>
+              <span>
+                📖 Milestone Assigned Material Snippet (Hash: 8a9f...3e01)
+              </span>
+              <span className="font-mono text-[10px] text-neutral-400">
+                On-Chain Verified
+              </span>
             </div>
             <p className="text-neutral-700 dark:text-neutral-300 italic leading-relaxed">
               &quot;{selectedCohort.materialSnippet}&quot;
@@ -216,7 +239,9 @@ export function VariantA() {
                       rows={2}
                       placeholder="Explain your understanding..."
                       value={answers[q.id] || ""}
-                      onChange={(e) => setAnswers({ ...answers, [q.id]: e.target.value })}
+                      onChange={(e) =>
+                        setAnswers({ ...answers, [q.id]: e.target.value })
+                      }
                       className="mt-1 w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-3 text-xs focus:ring-2 focus:ring-amber-500 outline-hidden"
                     />
                   </div>
@@ -232,7 +257,9 @@ export function VariantA() {
                       type="text"
                       placeholder="Paste exact excerpt here..."
                       value={quotes[q.id] || ""}
-                      onChange={(e) => setQuotes({ ...quotes, [q.id]: e.target.value })}
+                      onChange={(e) =>
+                        setQuotes({ ...quotes, [q.id]: e.target.value })
+                      }
                       className="mt-1 w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-2.5 text-xs font-mono focus:ring-2 focus:ring-amber-500 outline-hidden"
                     />
                   </div>
@@ -245,7 +272,8 @@ export function VariantA() {
                   Adaptive AI Follow-Up (ADR 0008)
                 </span>
                 <p className="text-xs font-medium text-neutral-800 dark:text-neutral-200">
-                  &quot;Based on your previous sentence, why would this check fail if the program ID is spoofed?&quot;
+                  &quot;Based on your previous sentence, why would this check
+                  fail if the program ID is spoofed?&quot;
                 </p>
                 <input
                   type="text"
@@ -270,7 +298,9 @@ export function VariantA() {
                   onClick={handleSubmitQuiz}
                   className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs uppercase tracking-wider transition cursor-pointer shadow-md disabled:opacity-50"
                 >
-                  {evaluating ? "AI Oracle Evaluating..." : "Submit for Oracle Attestation"}
+                  {evaluating
+                    ? "AI Oracle Evaluating..."
+                    : "Submit for Oracle Attestation"}
                 </button>
               </div>
             </div>
@@ -284,10 +314,12 @@ export function VariantA() {
                 AI Evaluator Grade: 92% (Passed)
               </h3>
               <p className="text-xs text-neutral-500 max-w-md mx-auto">
-                The oracle key has signed your milestone completion attestation. Submit the transaction to record on Solana!
+                The oracle key has signed your milestone completion attestation.
+                Submit the transaction to record on Solana!
               </p>
               <div className="p-4 rounded-xl bg-neutral-100 dark:bg-neutral-900 max-w-md mx-auto text-left font-mono text-[10px] text-neutral-400 break-all border border-neutral-200 dark:border-neutral-800">
-                Ed25519 Sig: 5K8s...9b1Z (Cohort: {selectedCohort.id}, Milestone: 2)
+                Ed25519 Sig: 5K8s...9b1Z (Cohort: {selectedCohort.id},
+                Milestone: 2)
               </div>
               <div className="flex justify-center gap-3 pt-4">
                 <button

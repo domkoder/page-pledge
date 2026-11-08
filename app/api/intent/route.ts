@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { parseCohortIntent } from '@/lib/intent/parser';
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { parseCohortIntent } from "@/lib/intent/parser";
 
 const IntentRequestSchema = z
   .object({
@@ -16,7 +16,11 @@ export async function POST(request: Request) {
     const parsed = IntentRequestSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { ok: false, error: 'Invalid request body', issues: parsed.error.issues },
+        {
+          ok: false,
+          error: "Invalid request body",
+          issues: parsed.error.issues,
+        },
         { status: 400 }
       );
     }
@@ -33,14 +37,17 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       JSON.parse(
-        JSON.stringify(result, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))
+        JSON.stringify(result, (_k, v) =>
+          typeof v === "bigint" ? v.toString() : v
+        )
       )
     );
   } catch (err) {
     return NextResponse.json(
       {
         ok: false,
-        error: err instanceof Error ? err.message : 'Failed to parse cohort intent',
+        error:
+          err instanceof Error ? err.message : "Failed to parse cohort intent",
       },
       { status: 500 }
     );

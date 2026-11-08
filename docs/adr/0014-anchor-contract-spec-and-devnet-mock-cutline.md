@@ -3,11 +3,13 @@
 **Status:** accepted (amends ADR 0004, ADR 0005, and ADR 0007)
 
 ## Context
+
 With the pledge asset (Native SOL `lamports`, ADR 0010), milestone lifecycle (`commit_submission` + `complete_milestone` + `NEUTRAL` cohort-liveness check + `start_cohort`, ADR 0011), cohort intent & AI grading scope (`score >= 75`, ADR 0012), and end-of-cohort economics (`settle_user` -> `finalize` -> `claim`, ADR 0013) locked, we need the exact on-chain Anchor account layouts, instruction contract, and Devnet vs. Mock demo cutline ready to split into implementation tickets via `/to-tickets`.
 
 ## Decision
 
 ### 1. Single Anchor Program (`anchor/programs/vault/src/lib.rs`) with 8 Instructions
+
 We cut the second mock-lender Anchor program (applying ADR 0004's cut-first rule) and ship a single, self-contained `vault` Anchor program on Solana Devnet with Codama client generation (`npm run codama`):
 
 1. **`create_cohort(id, title, stake_lamports, milestone_count, max_participants, interval_seconds, grace_period_seconds, content_hash, oracle_pubkey, treasury)`**
@@ -55,11 +57,13 @@ We cut the second mock-lender Anchor program (applying ADR 0004's cut-first rule
    - Computes `participant.payout` from `participant` state and `cohort`'s finalized `pool` / `eligible_stake_sum` / `assets` / `liabilities`, marks `claimed = true`, and transfers `payout` lamports from `Vault` PDA to `user`.
 
 ### 2. Dual-Mode UI (`Devnet Live` vs. `Mock Sandbox`) & Unified In-Browser Keeper
+
 - The UI provides an explicit mode toggle (`Devnet Live` backed by `SolanaChain` + connected wallet vs. `Mock Sandbox` backed by `MockChain`) in addition to `NEXT_PUBLIC_CHAIN=mock|devnet` default selection.
 - **Devnet Live mode** executes real on-chain transactions on Solana Devnet (using 2-minute fast-mode milestones for live demoability).
 - **Mock Sandbox mode** powers instant clock time-travel (`+1h`, jump to deadline, jump past grace), 6 built-in personas with 10 SOL faucets, interactive DeFi Yield (`aprBps`) & Lender-Loss Haircut (`h = min(1, A/U)`) sliders, 4 Scenario Presets, and the 9-vector Security Demo table.
 - **Unified Keeper:** The in-browser Keeper auto-sweeper tab operates against `ChainClient` (`settleUser` and `finalize`) in both modes without needing a separate standalone Node CLI process.
 
 ## Consequences
+
 - Every decision on the Wayfinder map is resolved and reconciled across `CONTEXT.md` and `docs/adr/0001`–`0014`.
 - The specification is ready to hand off to `/to-tickets` for implementation.

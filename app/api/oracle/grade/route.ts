@@ -1,9 +1,6 @@
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import {
-  checkOracleRateLimit,
-  evaluateSubmission,
-} from '@/lib/oracle/grader';
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { checkOracleRateLimit, evaluateSubmission } from "@/lib/oracle/grader";
 
 const GradeRequestSchema = z
   .object({
@@ -27,7 +24,7 @@ export async function POST(request: Request) {
     const parsed = GradeRequestSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Invalid grade request payload', issues: parsed.error.issues },
+        { error: "Invalid grade request payload", issues: parsed.error.issues },
         { status: 400 }
       );
     }
@@ -36,12 +33,16 @@ export async function POST(request: Request) {
 
     // Rate-limit grading attempts per (cohortId, user, milestoneIdx) unless it is an off-chain practice drill
     if (!req.isPractice) {
-      const rateLimit = checkOracleRateLimit(req.cohortId, req.user, req.milestoneIdx);
+      const rateLimit = checkOracleRateLimit(
+        req.cohortId,
+        req.user,
+        req.milestoneIdx
+      );
       if (!rateLimit.allowed) {
         return NextResponse.json(
           {
             error: `Rate limit exceeded for ${req.user} on milestone ${req.milestoneIdx + 1} (${rateLimit.attemptsUsed}/${rateLimit.maxAttempts} attempts in rolling window).`,
-            code: 'RateLimitExceeded',
+            code: "RateLimitExceeded",
           },
           { status: 429 }
         );
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
     return NextResponse.json(practiceResult);
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Oracle grading error' },
+      { error: err instanceof Error ? err.message : "Oracle grading error" },
       { status: 500 }
     );
   }

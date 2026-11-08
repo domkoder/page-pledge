@@ -3,9 +3,11 @@
 **Status:** accepted (supersedes ADR 0006; amends ADR 0007 and ADR 0009)
 
 ## Context
+
 ADR 0006, ADR 0007, and ADR 0009 originally described per-`(cohort, milestone, wallet)` settlement after every milestone's grace window, a creator-configurable `forfeit_bps`, 0% protocol fee, no keeper bounty, and rounding dust sent to the last claimer. Meanwhile, `p1.md`, `lib/economics.ts`, and `MockChain` implement a complete, property-tested economic model with fixed `1/M` proportional forfeiture per missed milestone, a 100 bps permissionless `settle_user` bounty, a fixed 200 bps protocol fee, rounding dust to Treasury, lender-loss haircut math (`h = min(1, A/U)`), and end-of-cohort settlement (`settle_user` -> `finalize` -> `claim`).
 
 ## Decision
+
 1. **Proportional Forfeiture (`1/M` per missed milestone):**
    - For a participant with stake `S_i` (in lamports) and `missed_i` missed milestones out of `M`, total forfeiture is fixed at:
      `F_i = floor(S_i * missed_i / M)`
@@ -27,5 +29,6 @@ ADR 0006, ADR 0007, and ADR 0009 originally described per-`(cohort, milestone, w
    - `claim` is callable once per participant after `Finalized`.
 
 ## Consequences
+
 - Reduces on-chain settlement transactions from `O(N * M)` (per milestone) to `O(N)` (once per participant at cohort end).
 - Preserves the exact pure accounting logic and property-tested invariant in `lib/economics.ts`, replacing `ONE_USDC` (`1_000_000n`) with `LAMPORTS_PER_SOL` (`1_000_000_000n`) and `MAX_SETTLE_BOUNTY = 10_000_000n` (`0.01 SOL`).

@@ -4,8 +4,12 @@ import { useState, useEffect } from "react";
 import { MOCK_COHORTS, MOCK_QUIZ_QUESTIONS, CohortMock } from "./mock-data";
 
 export function VariantB() {
-  const [selectedCohort, setSelectedCohort] = useState<CohortMock>(MOCK_COHORTS[0]);
-  const [activeStep, setActiveStep] = useState<"overview" | "quiz" | "settle">("overview");
+  const [selectedCohort, setSelectedCohort] = useState<CohortMock>(
+    MOCK_COHORTS[0]
+  );
+  const [activeStep, setActiveStep] = useState<"overview" | "quiz" | "settle">(
+    "overview"
+  );
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [secondsRemaining, setSecondsRemaining] = useState(600);
   const [userAnswer, setUserAnswer] = useState("");
@@ -60,8 +64,12 @@ export function VariantB() {
                   {c.title}
                 </h4>
                 <div className="mt-2 text-xs flex justify-between text-neutral-500">
-                  <span>Milestone {c.currentMilestoneIndex}/{c.totalMilestones}</span>
-                  <span className="text-amber-600 dark:text-amber-400 font-mono">18m left</span>
+                  <span>
+                    Milestone {c.currentMilestoneIndex}/{c.totalMilestones}
+                  </span>
+                  <span className="text-amber-600 dark:text-amber-400 font-mono">
+                    18m left
+                  </span>
                 </div>
               </button>
             );
@@ -75,7 +83,8 @@ export function VariantB() {
             <span className="font-mono text-emerald-500">Keeper Idle</span>
           </div>
           <p className="text-[11px] text-neutral-400 leading-tight">
-            Anyone can trigger on-chain settlement after deadline + grace period passes.
+            Anyone can trigger on-chain settlement after deadline + grace period
+            passes.
           </p>
           <button className="w-full py-1.5 px-3 rounded-lg border border-neutral-300 dark:border-neutral-700 font-mono text-[11px] font-semibold hover:bg-neutral-100 dark:hover:bg-neutral-800 transition cursor-pointer">
             Trigger Settle(Milestone 1)
@@ -92,11 +101,17 @@ export function VariantB() {
                 <span className="text-xs font-mono uppercase text-amber-500 font-bold">
                   Cohort Workspace
                 </span>
-                <h2 className="text-2xl font-black mt-0.5">{selectedCohort.title}</h2>
-                <p className="text-xs text-neutral-500 mt-1">{selectedCohort.bookOrTopic}</p>
+                <h2 className="text-2xl font-black mt-0.5">
+                  {selectedCohort.title}
+                </h2>
+                <p className="text-xs text-neutral-500 mt-1">
+                  {selectedCohort.bookOrTopic}
+                </p>
               </div>
               <div className="text-right">
-                <span className="text-xs text-neutral-400 font-mono">My Vault Balance</span>
+                <span className="text-xs text-neutral-400 font-mono">
+                  My Vault Balance
+                </span>
                 <p className="text-2xl font-black font-mono text-emerald-500">
                   {selectedCohort.depositSol} SOL
                 </p>
@@ -110,7 +125,8 @@ export function VariantB() {
               </h4>
               <div className="space-y-2">
                 {[1, 2, 3, 4].map((idx) => {
-                  const isCurrent = idx === selectedCohort.currentMilestoneIndex;
+                  const isCurrent =
+                    idx === selectedCohort.currentMilestoneIndex;
                   const isDone = idx < selectedCohort.currentMilestoneIndex;
                   return (
                     <div
@@ -119,8 +135,8 @@ export function VariantB() {
                         isCurrent
                           ? "border-amber-500 bg-amber-500/5 font-semibold"
                           : isDone
-                          ? "border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/30 text-neutral-400"
-                          : "border-neutral-200 dark:border-neutral-800 opacity-60"
+                            ? "border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/30 text-neutral-400"
+                            : "border-neutral-200 dark:border-neutral-800 opacity-60"
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -135,8 +151,8 @@ export function VariantB() {
                             {isCurrent
                               ? "⏳ Deadline: 18 minutes remaining"
                               : isDone
-                              ? "Passed & Signed On-Chain"
-                              : "Upcoming"}
+                                ? "Passed & Signed On-Chain"
+                                : "Upcoming"}
                           </div>
                         </div>
                       </div>
@@ -153,7 +169,11 @@ export function VariantB() {
                             Enter AI Test Terminal →
                           </button>
                         )}
-                        {isDone && <span className="font-mono text-emerald-500 font-bold">Attested</span>}
+                        {isDone && (
+                          <span className="font-mono text-emerald-500 font-bold">
+                            Attested
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
@@ -170,14 +190,18 @@ export function VariantB() {
             <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
               <div>
                 <span className="text-amber-400 text-xs uppercase font-bold">
-                  Terminal Step {currentQuestionIdx + 1} of {MOCK_QUIZ_QUESTIONS.length}
+                  Terminal Step {currentQuestionIdx + 1} of{" "}
+                  {MOCK_QUIZ_QUESTIONS.length}
                 </span>
-                <h3 className="text-lg font-bold text-white">AI Milestone Examiner</h3>
+                <h3 className="text-lg font-bold text-white">
+                  AI Milestone Examiner
+                </h3>
               </div>
 
               {/* Countdown badge */}
               <div className="px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 text-amber-400 text-xl font-bold">
-                ⏱ {Math.floor(secondsRemaining / 60)}:{(secondsRemaining % 60).toString().padStart(2, "0")}
+                ⏱ {Math.floor(secondsRemaining / 60)}:
+                {(secondsRemaining % 60).toString().padStart(2, "0")}
               </div>
             </div>
 
@@ -191,7 +215,8 @@ export function VariantB() {
                   &quot;{selectedCohort.materialSnippet}&quot;
                 </p>
                 <span className="text-[10px] text-amber-400 block pt-2">
-                  Requirement: Quote must be cited verbatim from this text block.
+                  Requirement: Quote must be cited verbatim from this text
+                  block.
                 </span>
               </div>
 
@@ -244,7 +269,9 @@ export function VariantB() {
                 ) : (
                   <button
                     onClick={() => {
-                      alert("Oracle Attestation Signed! Ed25519 payload created.");
+                      alert(
+                        "Oracle Attestation Signed! Ed25519 payload created."
+                      );
                       setActiveStep("overview");
                     }}
                     className="px-5 py-2 rounded-lg bg-emerald-500 text-neutral-950 font-bold text-xs uppercase cursor-pointer"

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   AlertCircle,
   ArrowRight,
@@ -14,33 +14,33 @@ import {
   Sparkles,
   Users,
   Zap,
-} from 'lucide-react';
-import { CohortAccount, CohortStatus } from '@/lib/chain';
-import { formatSol } from '@/lib/economics';
+} from "lucide-react";
+import { CohortAccount, CohortStatus } from "@/lib/chain";
+import { formatSol } from "@/lib/economics";
 import {
   EXAMPLE_INTENT_CHIPS,
   IntentParseResult,
   buildTermsPreview,
   parseIntentHeuristically,
-} from '@/lib/intent/parser';
-import { usePagePledgeStore } from '@/lib/store/use-pagepledge-store';
+} from "@/lib/intent/parser";
+import { usePagePledgeStore } from "@/lib/store/use-pagepledge-store";
 
 function statusBadgeStyle(status: CohortStatus): string {
   switch (status) {
-    case 'Open':
-      return 'bg-sky-500/15 text-sky-700 border-sky-500/30 dark:text-sky-300';
-    case 'Active':
-      return 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30 dark:text-emerald-300';
-    case 'Settling':
-      return 'bg-amber-500/15 text-amber-800 border-amber-500/30 dark:text-amber-300';
-    case 'Finalized':
-      return 'bg-purple-500/15 text-purple-700 border-purple-500/30 dark:text-purple-300';
+    case "Open":
+      return "bg-sky-500/15 text-sky-700 border-sky-500/30 dark:text-sky-300";
+    case "Active":
+      return "bg-emerald-500/15 text-emerald-700 border-emerald-500/30 dark:text-emerald-300";
+    case "Settling":
+      return "bg-amber-500/15 text-amber-800 border-amber-500/30 dark:text-amber-300";
+    case "Finalized":
+      return "bg-purple-500/15 text-purple-700 border-purple-500/30 dark:text-purple-300";
   }
 }
 
 function formatCountdown(targetUnix: number, nowUnix: number): string {
   const diff = targetUnix - nowUnix;
-  if (diff <= 0) return 'Window closed';
+  if (diff <= 0) return "Window closed";
   const days = Math.floor(diff / 86_400);
   const hours = Math.floor((diff % 86_400) / 3600);
   const mins = Math.floor((diff % 3600) / 60);
@@ -66,12 +66,14 @@ export function HomeCreateAndCohortsScreen() {
   const [prompt, setPrompt] = useState(EXAMPLE_INTENT_CHIPS[0].prompt);
   const [demoFastMode, setDemoFastMode] = useState(false);
   const [useCustomMaterial, setUseCustomMaterial] = useState(false);
-  const [customMaterialText, setCustomMaterialText] = useState('');
+  const [customMaterialText, setCustomMaterialText] = useState("");
   const [loadingParse, setLoadingParse] = useState(false);
-  const [parseResult, setParseResult] = useState<IntentParseResult | null>(() => {
-    const initial = parseIntentHeuristically(EXAMPLE_INTENT_CHIPS[0].prompt);
-    return initial;
-  });
+  const [parseResult, setParseResult] = useState<IntentParseResult | null>(
+    () => {
+      const initial = parseIntentHeuristically(EXAMPLE_INTENT_CHIPS[0].prompt);
+      return initial;
+    }
+  );
 
   const handleParsePrompt = async (
     customPrompt?: string,
@@ -88,27 +90,33 @@ export function HomeCreateAndCohortsScreen() {
           : undefined;
     setLoadingParse(true);
     try {
-      const res = await fetch('/api/intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: textToParse,
           demoFastMode: isFast,
-          ...(materialText && materialText.trim() ? { customMaterialText: materialText } : {}),
+          ...(materialText && materialText.trim()
+            ? { customMaterialText: materialText }
+            : {}),
         }),
       });
       const data = (await res.json()) as IntentParseResult;
-      if (data.terms && typeof data.terms.stakeLamports === 'string') {
+      if (data.terms && typeof data.terms.stakeLamports === "string") {
         data.terms.stakeLamports = BigInt(data.terms.stakeLamports);
       }
       setParseResult(data);
       if (!data.ok) {
-        toast.error(data.error ?? 'Intent rejected by strict schema');
+        toast.error(data.error ?? "Intent rejected by strict schema");
       } else {
-        toast.success('Parsed & validated cohort terms!');
+        toast.success("Parsed & validated cohort terms!");
       }
     } catch {
-      const fallback = parseIntentHeuristically(textToParse, materialText, isFast);
+      const fallback = parseIntentHeuristically(
+        textToParse,
+        materialText,
+        isFast
+      );
       setParseResult(fallback);
     } finally {
       setLoadingParse(false);
@@ -132,7 +140,11 @@ export function HomeCreateAndCohortsScreen() {
     if (parseResult?.ok && parseResult.intent) {
       setParseResult({
         ...parseResult,
-        terms: buildTermsPreview(parseResult.intent, demoFastMode, materialText),
+        terms: buildTermsPreview(
+          parseResult.intent,
+          demoFastMode,
+          materialText
+        ),
       });
     }
   };
@@ -147,9 +159,11 @@ export function HomeCreateAndCohortsScreen() {
     }
   };
 
-  const handleConfirmCreate = async (autoPopulateThreePersonas: boolean = false) => {
+  const handleConfirmCreate = async (
+    autoPopulateThreePersonas: boolean = false
+  ) => {
     if (!parseResult?.ok || !parseResult.intent) return;
-    const trimmedCustom = useCustomMaterial ? customMaterialText.trim() : '';
+    const trimmedCustom = useCustomMaterial ? customMaterialText.trim() : "";
     try {
       const cohort = await createCohort({
         ...parseResult.intent,
@@ -158,9 +172,9 @@ export function HomeCreateAndCohortsScreen() {
         customMaterialText: trimmedCustom || undefined,
       });
       if (autoPopulateThreePersonas) {
-        await joinCohort(cohort.id, 'alice');
-        await joinCohort(cohort.id, 'bob');
-        await joinCohort(cohort.id, 'carol');
+        await joinCohort(cohort.id, "alice");
+        await joinCohort(cohort.id, "bob");
+        await joinCohort(cohort.id, "carol");
         await startCohort(cohort.id);
         toast.success(
           `Created "${cohort.title}", joined Alice/Bob/Carol, and started cohort!`
@@ -169,16 +183,20 @@ export function HomeCreateAndCohortsScreen() {
         toast.success(`Cohort "${cohort.title}" created in Open state!`);
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to create cohort');
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create cohort"
+      );
     }
   };
 
   const handleQuickJoin = async (cohort: CohortAccount) => {
     try {
       await joinCohort(cohort.id, activePersona);
-      toast.success(`${activePersona} staked ${formatSol(cohort.stake)} and joined "${cohort.title}"`);
+      toast.success(
+        `${activePersona} staked ${formatSol(cohort.stake)} and joined "${cohort.title}"`
+      );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not join cohort');
+      toast.error(err instanceof Error ? err.message : "Could not join cohort");
     }
   };
 
@@ -187,7 +205,9 @@ export function HomeCreateAndCohortsScreen() {
       await startCohort(cohort.id);
       toast.success(`Cohort "${cohort.title}" is now Active!`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not start cohort');
+      toast.error(
+        err instanceof Error ? err.message : "Could not start cohort"
+      );
     }
   };
 
@@ -204,11 +224,15 @@ export function HomeCreateAndCohortsScreen() {
               </h2>
             </div>
             <p className="mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
-              Describe your reading cohort in plain English. Validated by a{' '}
+              Describe your reading cohort in plain English. Validated by a{" "}
               <code className="rounded bg-neutral-100 px-1 py-0.5 font-mono text-[11px] dark:bg-neutral-800">
                 .strict()
-              </code>{' '}
-              Zod schema before reaching <code className="font-mono text-[11px]">ChainClient.createCohort</code>.
+              </code>{" "}
+              Zod schema before reaching{" "}
+              <code className="font-mono text-[11px]">
+                ChainClient.createCohort
+              </code>
+              .
             </p>
           </div>
 
@@ -249,8 +273,8 @@ export function HomeCreateAndCohortsScreen() {
               }}
               className={`rounded-lg border px-2.5 py-1 text-xs font-medium transition ${
                 chip.isUnsupportedDemo
-                  ? 'border-rose-500/40 bg-rose-500/10 text-rose-700 hover:bg-rose-500/20 dark:text-rose-300'
-                  : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200'
+                  ? "border-rose-500/40 bg-rose-500/10 text-rose-700 hover:bg-rose-500/20 dark:text-rose-300"
+                  : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:border-indigo-400 hover:bg-indigo-50/50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
               }`}
             >
               {chip.label}
@@ -273,7 +297,7 @@ export function HomeCreateAndCohortsScreen() {
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50"
           >
             <Sparkles className="h-4 w-4" />
-            {loadingParse ? 'Parsing...' : 'Parse & Preview Terms'}
+            {loadingParse ? "Parsing..." : "Parse & Preview Terms"}
           </button>
         </div>
 
@@ -283,7 +307,9 @@ export function HomeCreateAndCohortsScreen() {
               htmlFor="custom-study-material"
               className="mb-1.5 block text-xs font-bold text-indigo-900 dark:text-indigo-200"
             >
-              Custom Study Material (SHA-256 hashed on-chain into cohort contentHash; leave empty to use the 5 built-in Rust Ownership &amp; Borrowing passages)
+              Custom Study Material (SHA-256 hashed on-chain into cohort
+              contentHash; leave empty to use the 5 built-in Rust Ownership
+              &amp; Borrowing passages)
             </label>
             <textarea
               id="custom-study-material"
@@ -308,10 +334,14 @@ export function HomeCreateAndCohortsScreen() {
                 <h3 className="text-sm font-bold">
                   Intent Rejected by Protocol Guardrails
                 </h3>
-                <p className="mt-1 text-xs leading-relaxed">{parseResult.error}</p>
+                <p className="mt-1 text-xs leading-relaxed">
+                  {parseResult.error}
+                </p>
                 <p className="mt-2 font-mono text-[11px] opacity-80">
-                  The AI parser never emits raw Solana instructions or custom fee overrides. Only validated{' '}
-                  <code>CohortIntentSchema.strict()</code> parameters are accepted.
+                  The AI parser never emits raw Solana instructions or custom
+                  fee overrides. Only validated{" "}
+                  <code>CohortIntentSchema.strict()</code> parameters are
+                  accepted.
                 </p>
               </div>
             </div>
@@ -326,7 +356,9 @@ export function HomeCreateAndCohortsScreen() {
                 <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                   Human-Readable Cohort Terms Card
                 </span>
-                <h3 className="text-base font-bold">{parseResult.terms.intent.title}</h3>
+                <h3 className="text-base font-bold">
+                  {parseResult.terms.intent.title}
+                </h3>
               </div>
 
               <div className="flex flex-wrap gap-1.5">
@@ -344,7 +376,9 @@ export function HomeCreateAndCohortsScreen() {
 
             <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-lg border border-neutral-200/80 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
-                <div className="text-neutral-500">Stake per Participant (S_i)</div>
+                <div className="text-neutral-500">
+                  Stake per Participant (S_i)
+                </div>
                 <div className="mt-1 font-mono text-base font-bold text-emerald-600 dark:text-emerald-400">
                   {parseResult.terms.stakeFormatted}
                 </div>
@@ -354,18 +388,22 @@ export function HomeCreateAndCohortsScreen() {
               </div>
 
               <div className="rounded-lg border border-neutral-200/80 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
-                <div className="text-neutral-500">Milestones & Forfeit per Miss</div>
+                <div className="text-neutral-500">
+                  Milestones & Forfeit per Miss
+                </div>
                 <div className="mt-1 font-mono text-sm font-bold">
                   {parseResult.terms.forfeitPerMissFraction}
                 </div>
                 <div className="mt-0.5 text-[11px] text-neutral-400">
-                  {parseResult.terms.intent.milestoneCount} milestones over{' '}
+                  {parseResult.terms.intent.milestoneCount} milestones over{" "}
                   {parseResult.terms.intent.durationDays} days
                 </div>
               </div>
 
               <div className="rounded-lg border border-neutral-200/80 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
-                <div className="text-neutral-500">Protocol Fee &amp; Settle Bounty</div>
+                <div className="text-neutral-500">
+                  Protocol Fee &amp; Settle Bounty
+                </div>
                 <div className="mt-1 font-mono text-sm font-bold">
                   {parseResult.terms.protocolFeeFormatted}
                 </div>
@@ -375,7 +413,9 @@ export function HomeCreateAndCohortsScreen() {
               </div>
 
               <div className="rounded-lg border border-neutral-200/80 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
-                <div className="text-neutral-500">Grace Window &amp; Material Hash</div>
+                <div className="text-neutral-500">
+                  Grace Window &amp; Material Hash
+                </div>
                 <div className="mt-1 font-mono text-xs font-bold">
                   {parseResult.terms.gracePeriodFormatted}
                 </div>
@@ -390,7 +430,9 @@ export function HomeCreateAndCohortsScreen() {
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3 pt-2">
               <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                <span className="font-semibold text-neutral-500">Deadlines:</span>
+                <span className="font-semibold text-neutral-500">
+                  Deadlines:
+                </span>
                 {parseResult.terms.deadlinesPreview.map((d) => (
                   <span
                     key={d}
@@ -428,14 +470,19 @@ export function HomeCreateAndCohortsScreen() {
       <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold tracking-tight">Cohorts Directory</h2>
+            <h2 className="text-lg font-bold tracking-tight">
+              Cohorts Directory
+            </h2>
             <p className="text-xs text-neutral-500">
-              All cohorts persisted in localStorage under{' '}
-              <code className="font-mono text-[11px]">pagepledge_mockchain_v1</code>.
+              All cohorts persisted in localStorage under{" "}
+              <code className="font-mono text-[11px]">
+                pagepledge_mockchain_v1
+              </code>
+              .
             </p>
           </div>
           <span className="rounded-full bg-neutral-100 px-3 py-1 font-mono text-xs font-semibold dark:bg-neutral-800">
-            {cohorts.length} Cohort{cohorts.length === 1 ? '' : 's'}
+            {cohorts.length} Cohort{cohorts.length === 1 ? "" : "s"}
           </span>
         </div>
 
@@ -453,8 +500,8 @@ export function HomeCreateAndCohortsScreen() {
                 key={cohort.id}
                 className={`flex flex-col justify-between rounded-xl border p-4 transition ${
                   isSelected
-                    ? 'border-indigo-500 bg-indigo-500/5 dark:border-indigo-400'
-                    : 'border-neutral-200 hover:border-neutral-300 dark:border-neutral-800'
+                    ? "border-indigo-500 bg-indigo-500/5 dark:border-indigo-400"
+                    : "border-neutral-200 hover:border-neutral-300 dark:border-neutral-800"
                 }`}
               >
                 <div>
@@ -486,14 +533,18 @@ export function HomeCreateAndCohortsScreen() {
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-neutral-400">Participants</div>
+                      <div className="text-[10px] text-neutral-400">
+                        Participants
+                      </div>
                       <div className="flex items-center gap-1 font-mono font-bold">
                         <Users className="h-3 w-3 text-neutral-400" />
                         {pCount} / {cohort.maxParticipants}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-neutral-400">Milestones</div>
+                      <div className="text-[10px] text-neutral-400">
+                        Milestones
+                      </div>
                       <div className="flex items-center gap-1 font-mono font-bold">
                         <Layers className="h-3 w-3 text-neutral-400" />
                         {cohort.milestoneCount} checks
@@ -505,13 +556,13 @@ export function HomeCreateAndCohortsScreen() {
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 pt-3 dark:border-neutral-800">
                   <span className="flex items-center gap-1 font-mono text-[11px] text-neutral-500">
                     <Clock className="h-3 w-3" />
-                    {cohort.status === 'Finalized'
-                      ? 'Finalized'
+                    {cohort.status === "Finalized"
+                      ? "Finalized"
                       : formatCountdown(nextDeadline, now)}
                   </span>
 
                   <div className="flex items-center gap-2">
-                    {cohort.status === 'Open' && !isJoined && (
+                    {cohort.status === "Open" && !isJoined && (
                       <button
                         type="button"
                         onClick={() => handleQuickJoin(cohort)}
@@ -520,7 +571,7 @@ export function HomeCreateAndCohortsScreen() {
                         Join as {activePersona}
                       </button>
                     )}
-                    {cohort.status === 'Open' && pCount >= 2 && (
+                    {cohort.status === "Open" && pCount >= 2 && (
                       <button
                         type="button"
                         onClick={() => handleQuickStart(cohort)}
@@ -533,7 +584,7 @@ export function HomeCreateAndCohortsScreen() {
                       type="button"
                       onClick={() => {
                         setSelectedCohortId(cohort.id);
-                        setActiveScreen('detail');
+                        setActiveScreen("detail");
                       }}
                       className="inline-flex items-center gap-1 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800"
                     >

@@ -12,12 +12,14 @@ const PROTOTYPE_VARIANTS: PrototypeVariantDef[] = [
   {
     id: "WINNER",
     label: "Winning Hybrid: A + B + C Unified",
-    description: "Variant A card grid + Variant B split-screen terminal + Variant C radial timer & adaptive defense",
+    description:
+      "Variant A card grid + Variant B split-screen terminal + Variant C radial timer & adaptive defense",
   },
   {
     id: "A",
     label: "Variant A (Card Grid + Modal)",
-    description: "Grid of active cohorts with quick quiz modal and citation input",
+    description:
+      "Grid of active cohorts with quick quiz modal and citation input",
   },
   {
     id: "B",
@@ -27,7 +29,8 @@ const PROTOTYPE_VARIANTS: PrototypeVariantDef[] = [
   {
     id: "C",
     label: "Variant C (High-Stakes + Defense)",
-    description: "Financial risk-forward layout with interactive oral/audio follow-up",
+    description:
+      "Financial risk-forward layout with interactive oral/audio follow-up",
   },
 ];
 
@@ -52,7 +55,11 @@ function PrototypeAppFlowInner() {
 
 export function PrototypeAppFlow() {
   return (
-    <Suspense fallback={<div className="p-8 font-mono text-xs">Loading prototype flow...</div>}>
+    <Suspense
+      fallback={
+        <div className="p-8 font-mono text-xs">Loading prototype flow...</div>
+      }
+    >
       <PrototypeAppFlowInner />
     </Suspense>
   );

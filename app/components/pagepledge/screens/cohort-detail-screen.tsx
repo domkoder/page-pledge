@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   Activity,
   Award,
@@ -13,23 +13,28 @@ import {
   ShieldCheck,
   UserPlus,
   Play,
-} from 'lucide-react';
-import { MilestoneOutcome, computeForfeit, computeSettleBounty, formatSol } from '@/lib/economics';
-import { usePagePledgeStore } from '@/lib/store/use-pagepledge-store';
+} from "lucide-react";
+import {
+  MilestoneOutcome,
+  computeForfeit,
+  computeSettleBounty,
+  formatSol,
+} from "@/lib/economics";
+import { usePagePledgeStore } from "@/lib/store/use-pagepledge-store";
 
 function outcomeChipStyle(outcome: MilestoneOutcome): string {
   switch (outcome) {
-    case 'PASSED':
-      return 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30 dark:text-emerald-300';
-    case 'COMMITTED':
-      return 'bg-indigo-500/15 text-indigo-700 border-indigo-500/30 dark:text-indigo-300';
-    case 'MISSED':
-      return 'bg-rose-500/15 text-rose-700 border-rose-500/30 dark:text-rose-300';
-    case 'NEUTRAL':
-      return 'bg-amber-500/15 text-amber-800 border-amber-500/30 dark:text-amber-300';
-    case 'PENDING':
+    case "PASSED":
+      return "bg-emerald-500/15 text-emerald-700 border-emerald-500/30 dark:text-emerald-300";
+    case "COMMITTED":
+      return "bg-indigo-500/15 text-indigo-700 border-indigo-500/30 dark:text-indigo-300";
+    case "MISSED":
+      return "bg-rose-500/15 text-rose-700 border-rose-500/30 dark:text-rose-300";
+    case "NEUTRAL":
+      return "bg-amber-500/15 text-amber-800 border-amber-500/30 dark:text-amber-300";
+    case "PENDING":
     default:
-      return 'bg-neutral-200/70 text-neutral-600 border-neutral-300 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700';
+      return "bg-neutral-200/70 text-neutral-600 border-neutral-300 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700";
   }
 }
 
@@ -70,14 +75,16 @@ export function CohortDetailAndSettleScreen() {
   const participants = Object.values(cohort.participants);
   const lastDeadline = cohort.deadlines[cohort.milestoneCount - 1];
   const settleWindowOpen = now > lastDeadline + cohort.gracePeriodSeconds;
-  const cohortTxs = transactions.filter((t) => !t.cohortId || t.cohortId === cohort.id);
+  const cohortTxs = transactions.filter(
+    (t) => !t.cohortId || t.cohortId === cohort.id
+  );
 
   const handleSettleUser = async (targetUser: string) => {
     try {
       await settleUser(cohort.id, targetUser, activePersona);
       toast.success(`${activePersona} settled ${targetUser}!`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Settlement failed');
+      toast.error(err instanceof Error ? err.message : "Settlement failed");
     }
   };
 
@@ -86,7 +93,7 @@ export function CohortDetailAndSettleScreen() {
       await finalizeCohort(cohort.id, activePersona);
       toast.success(`Cohort "${cohort.title}" finalized!`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Finalize failed');
+      toast.error(err instanceof Error ? err.message : "Finalize failed");
     }
   };
 
@@ -95,7 +102,7 @@ export function CohortDetailAndSettleScreen() {
       const payout = await claimPayout(cohort.id, user);
       toast.success(`${user} claimed ${formatSol(payout)}!`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Claim failed');
+      toast.error(err instanceof Error ? err.message : "Claim failed");
     }
   };
 
@@ -106,7 +113,9 @@ export function CohortDetailAndSettleScreen() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
-              <h2 className="text-xl font-bold tracking-tight">{cohort.title}</h2>
+              <h2 className="text-xl font-bold tracking-tight">
+                {cohort.title}
+              </h2>
               <span className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-0.5 text-xs font-bold text-indigo-700 dark:text-indigo-300">
                 Status: {cohort.status}
               </span>
@@ -122,32 +131,37 @@ export function CohortDetailAndSettleScreen() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {cohort.status === 'Open' && !cohort.participants[activePersona] && (
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    await joinCohort(cohort.id, activePersona);
-                    toast.success(`${activePersona} joined cohort!`);
-                  } catch (e) {
-                    toast.error(e instanceof Error ? e.message : 'Join failed');
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
-              >
-                <UserPlus className="h-4 w-4" />
-                Join as {activePersona} ({formatSol(cohort.stake)})
-              </button>
-            )}
-            {cohort.status === 'Open' && participants.length >= 2 && (
+            {cohort.status === "Open" &&
+              !cohort.participants[activePersona] && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await joinCohort(cohort.id, activePersona);
+                      toast.success(`${activePersona} joined cohort!`);
+                    } catch (e) {
+                      toast.error(
+                        e instanceof Error ? e.message : "Join failed"
+                      );
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Join as {activePersona} ({formatSol(cohort.stake)})
+                </button>
+              )}
+            {cohort.status === "Open" && participants.length >= 2 && (
               <button
                 type="button"
                 onClick={async () => {
                   try {
                     await startCohort(cohort.id);
-                    toast.success('Cohort started!');
+                    toast.success("Cohort started!");
                   } catch (e) {
-                    toast.error(e instanceof Error ? e.message : 'Start failed');
+                    toast.error(
+                      e instanceof Error ? e.message : "Start failed"
+                    );
                   }
                 }}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700"
@@ -158,7 +172,7 @@ export function CohortDetailAndSettleScreen() {
             )}
             <button
               type="button"
-              onClick={() => setActiveScreen('participant')}
+              onClick={() => setActiveScreen("participant")}
               className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-500/40 bg-indigo-500/10 px-4 py-2 text-xs font-bold text-indigo-800 hover:bg-indigo-500/20 dark:text-indigo-200"
             >
               Open Participant Quiz Terminal &rarr;
@@ -169,14 +183,20 @@ export function CohortDetailAndSettleScreen() {
         {/* Milestone Timeline */}
         <div className="mt-6 border-t border-neutral-200 pt-4 dark:border-neutral-800">
           <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-neutral-500">
-            Milestone Timeline & Deadlines (Grace: +{cohort.gracePeriodSeconds}s)
+            Milestone Timeline & Deadlines (Grace: +{cohort.gracePeriodSeconds}
+            s)
           </h3>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             {cohort.deadlines.map((dl, idx) => {
               const graceEnd = dl + cohort.gracePeriodSeconds;
               const isCommitOpen = now <= dl;
               const isInGrace = now > dl && now <= graceEnd;
-              const outcome = chain.getMilestoneOutcome(cohort, activePersona, idx, now);
+              const outcome = chain.getMilestoneOutcome(
+                cohort,
+                activePersona,
+                idx,
+                now
+              );
 
               return (
                 <button
@@ -184,12 +204,14 @@ export function CohortDetailAndSettleScreen() {
                   type="button"
                   onClick={() => {
                     setSelectedMilestoneIdx(idx);
-                    setActiveScreen('participant');
+                    setActiveScreen("participant");
                   }}
                   className="flex flex-col justify-between rounded-xl border border-neutral-200 bg-neutral-50/70 p-3 text-left transition hover:border-indigo-400 dark:border-neutral-800 dark:bg-neutral-950/60"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold">Milestone {idx + 1}</span>
+                    <span className="font-mono text-xs font-bold">
+                      Milestone {idx + 1}
+                    </span>
                     <span
                       className={`rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold ${outcomeChipStyle(
                         outcome
@@ -199,7 +221,11 @@ export function CohortDetailAndSettleScreen() {
                     </span>
                   </div>
                   <div className="mt-2 font-mono text-[11px] text-neutral-500">
-                    Due: {new Date(dl * 1000).toISOString().slice(0, 16).replace('T', ' ')}
+                    Due:{" "}
+                    {new Date(dl * 1000)
+                      .toISOString()
+                      .slice(0, 16)
+                      .replace("T", " ")}
                   </div>
                   <div className="mt-1 text-[10px] font-semibold">
                     {isCommitOpen ? (
@@ -211,7 +237,9 @@ export function CohortDetailAndSettleScreen() {
                         In Grace Window (Attest Only)
                       </span>
                     ) : (
-                      <span className="text-rose-600 dark:text-rose-400">Window Closed</span>
+                      <span className="text-rose-600 dark:text-rose-400">
+                        Window Closed
+                      </span>
                     )}
                   </div>
                 </button>
@@ -229,7 +257,8 @@ export function CohortDetailAndSettleScreen() {
               Participants & Per-Milestone Outcomes (Settle / Claim)
             </h3>
             <p className="text-xs text-neutral-500">
-              Anyone can call <code className="font-mono">settle_user</code> after the final milestone grace window closes and earn{' '}
+              Anyone can call <code className="font-mono">settle_user</code>{" "}
+              after the final milestone grace window closes and earn{" "}
               <code className="font-mono">min(1% of forfeit, 0.01 SOL)</code>.
             </p>
           </div>
@@ -238,12 +267,12 @@ export function CohortDetailAndSettleScreen() {
             <button
               type="button"
               onClick={handleFinalize}
-              disabled={cohort.status === 'Finalized'}
+              disabled={cohort.status === "Finalized"}
               className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-purple-700 disabled:opacity-40"
             >
               <Gavel className="h-3.5 w-3.5" />
-              {cohort.status === 'Finalized'
-                ? 'Cohort Finalized'
+              {cohort.status === "Finalized"
+                ? "Cohort Finalized"
                 : `Finalize Cohort (as ${activePersona})`}
             </button>
           </div>
@@ -264,19 +293,28 @@ export function CohortDetailAndSettleScreen() {
             </thead>
             <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800/80">
               {participants.map((p) => {
-                const econRow = econ.participants.find((ep) => ep.user === p.user);
+                const econRow = econ.participants.find(
+                  (ep) => ep.user === p.user
+                );
                 let liveMissed = 0;
                 const outcomes: MilestoneOutcome[] = [];
                 for (let i = 0; i < cohort.milestoneCount; i++) {
                   const o = chain.getMilestoneOutcome(cohort, p.user, i, now);
                   outcomes.push(o);
-                  if (o === 'MISSED') liveMissed++;
+                  if (o === "MISSED") liveMissed++;
                 }
-                const estForfeit = computeForfeit(p.stake, liveMissed, cohort.milestoneCount);
+                const estForfeit = computeForfeit(
+                  p.stake,
+                  liveMissed,
+                  cohort.milestoneCount
+                );
                 const estBounty = computeSettleBounty(estForfeit);
 
                 return (
-                  <tr key={p.user} className="hover:bg-neutral-50/60 dark:hover:bg-neutral-950/40">
+                  <tr
+                    key={p.user}
+                    className="hover:bg-neutral-50/60 dark:hover:bg-neutral-950/40"
+                  >
                     <td className="py-3 pr-3 font-bold capitalize">
                       {p.user}
                       {p.user === activePersona && (
@@ -285,7 +323,9 @@ export function CohortDetailAndSettleScreen() {
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-3 font-mono">{formatSol(p.stake)}</td>
+                    <td className="px-3 py-3 font-mono">
+                      {formatSol(p.stake)}
+                    </td>
                     <td className="px-3 py-3">
                       <div className="flex flex-wrap gap-1.5">
                         {outcomes.map((outcome, mIdx) => (
@@ -301,18 +341,29 @@ export function CohortDetailAndSettleScreen() {
                       </div>
                     </td>
                     <td className="px-3 py-3 font-mono text-[11px] text-neutral-500">
-                      0b{p.completedBitmap.toString(2).padStart(cohort.milestoneCount, '0')}
+                      0b
+                      {p.completedBitmap
+                        .toString(2)
+                        .padStart(cohort.milestoneCount, "0")}
                     </td>
                     <td className="px-3 py-3 font-mono">
                       <div className="text-rose-600 dark:text-rose-400">
-                        -{formatSol(econRow?.forfeit ?? estForfeit, { maxDecimals: 9 })}
+                        -
+                        {formatSol(econRow?.forfeit ?? estForfeit, {
+                          maxDecimals: 9,
+                        })}
                       </div>
                       <div className="text-[10px] text-amber-600 dark:text-amber-400">
-                        Bounty: {formatSol(econRow?.bounty ?? estBounty, { maxDecimals: 9 })}
+                        Bounty:{" "}
+                        {formatSol(econRow?.bounty ?? estBounty, {
+                          maxDecimals: 9,
+                        })}
                       </div>
                     </td>
                     <td className="px-3 py-3 font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                      {formatSol(econRow?.payout ?? p.stake, { maxDecimals: 9 })}
+                      {formatSol(econRow?.payout ?? p.stake, {
+                        maxDecimals: 9,
+                      })}
                       {econRow?.eligible && (
                         <span className="ml-1 rounded bg-emerald-500/15 px-1.5 py-0.5 text-[9px] text-emerald-700 dark:text-emerald-300">
                           +Pool
@@ -327,8 +378,8 @@ export function CohortDetailAndSettleScreen() {
                             onClick={() => handleSettleUser(p.user)}
                             className={`rounded-lg px-2.5 py-1.5 font-mono text-[11px] font-bold transition ${
                               settleWindowOpen
-                                ? 'bg-amber-500 text-neutral-950 hover:bg-amber-400'
-                                : 'border border-neutral-300 bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
+                                ? "bg-amber-500 text-neutral-950 hover:bg-amber-400"
+                                : "border border-neutral-300 bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
                             }`}
                           >
                             Settle (+{formatSol(estBounty, { maxDecimals: 9 })})
@@ -345,9 +396,9 @@ export function CohortDetailAndSettleScreen() {
                             type="button"
                             onClick={() => handleClaim(p.user)}
                             className={`rounded-lg px-2.5 py-1.5 font-mono text-[11px] font-bold transition ${
-                              cohort.status === 'Finalized'
-                                ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                                : 'border border-neutral-300 bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300'
+                              cohort.status === "Finalized"
+                                ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                                : "border border-neutral-300 bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
                             }`}
                           >
                             Claim
@@ -378,7 +429,9 @@ export function CohortDetailAndSettleScreen() {
                 Protocol Money-Flow & Live Solvency Verification
               </h3>
               <p className="text-xs text-neutral-500">
-                All math uses integer base units (9-decimal SOL lamports <code className="font-mono">BigInt</code>). Zero floating-point operations.
+                All math uses integer base units (9-decimal SOL lamports{" "}
+                <code className="font-mono">BigInt</code>). Zero floating-point
+                operations.
               </p>
             </div>
           </div>
@@ -386,28 +439,31 @@ export function CohortDetailAndSettleScreen() {
           <div
             className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-1.5 font-mono text-xs font-bold ${
               econ.invariantHolds
-                ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300'
-                : 'border-rose-500/40 bg-rose-500/15 text-rose-800 dark:text-rose-300'
+                ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-800 dark:text-emerald-300"
+                : "border-rose-500/40 bg-rose-500/15 text-rose-800 dark:text-rose-300"
             }`}
           >
             <ShieldCheck className="h-4 w-4" />
-            Solvency Check: {econ.invariantHolds ? 'OK (SOLVENT)' : 'VIOLATION'}
+            Solvency Check: {econ.invariantHolds ? "OK (SOLVENT)" : "VIOLATION"}
           </div>
         </div>
 
         {/* Solvency Equation Banner */}
         <div className="mb-5 rounded-xl border border-emerald-500/30 bg-neutral-950 p-4 font-mono text-xs text-neutral-100">
           <div className="text-[11px] uppercase tracking-wider text-neutral-400">
-            Protocol Solvency Invariant: sum(payouts) + fee + dust === A (Assets at Finalize)
+            Protocol Solvency Invariant: sum(payouts) + fee + dust === A (Assets
+            at Finalize)
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm font-bold text-emerald-400">
-            <span>{formatSol(econ.totalPayouts, { maxDecimals: 9 })} (Payouts)</span>
+            <span>
+              {formatSol(econ.totalPayouts, { maxDecimals: 9 })} (Payouts)
+            </span>
             <span>+</span>
             <span>{formatSol(econ.fee, { maxDecimals: 9 })} (Fee 200bps)</span>
             <span>+</span>
             <span>
               {formatSol(econ.dust, { maxDecimals: 9 })} (Dust
-              {econ.nobodyEligible ? ' + Unclaimed Yield Sweep' : ''})
+              {econ.nobodyEligible ? " + Unclaimed Yield Sweep" : ""})
             </span>
             <span>===</span>
             <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-emerald-300">
@@ -418,7 +474,9 @@ export function CohortDetailAndSettleScreen() {
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
-            <div className="text-[11px] text-neutral-500">1. Deposits sum(S_i)</div>
+            <div className="text-[11px] text-neutral-500">
+              1. Deposits sum(S_i)
+            </div>
             <div className="mt-1 font-mono text-sm font-bold">
               {formatSol(econ.totalDeposits)}
             </div>
@@ -428,7 +486,9 @@ export function CohortDetailAndSettleScreen() {
           </div>
 
           <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
-            <div className="text-[11px] text-neutral-500">2. Gross Forfeits sum(F_i)</div>
+            <div className="text-[11px] text-neutral-500">
+              2. Gross Forfeits sum(F_i)
+            </div>
             <div className="mt-1 font-mono text-sm font-bold text-rose-600 dark:text-rose-400">
               {formatSol(econ.totalForfeits, { maxDecimals: 9 })}
             </div>
@@ -438,7 +498,9 @@ export function CohortDetailAndSettleScreen() {
           </div>
 
           <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
-            <div className="text-[11px] text-neutral-500">3. Net Forfeits sum(N_i)</div>
+            <div className="text-[11px] text-neutral-500">
+              3. Net Forfeits sum(N_i)
+            </div>
             <div className="mt-1 font-mono text-sm font-bold">
               {formatSol(econ.totalNetForfeits, { maxDecimals: 9 })}
             </div>
@@ -460,10 +522,14 @@ export function CohortDetailAndSettleScreen() {
           </div>
 
           <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
-            <div className="text-[11px] text-neutral-500">5. Haircut h = min(1, A/U)</div>
+            <div className="text-[11px] text-neutral-500">
+              5. Haircut h = min(1, A/U)
+            </div>
             <div
               className={`mt-1 font-mono text-sm font-bold ${
-                econ.isHaircut ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600'
+                econ.isHaircut
+                  ? "text-rose-600 dark:text-rose-400"
+                  : "text-emerald-600"
               }`}
             >
               {(Number(econ.haircutBps) / 100).toFixed(2)}%
@@ -474,12 +540,16 @@ export function CohortDetailAndSettleScreen() {
           </div>
 
           <div className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
-            <div className="text-[11px] text-neutral-500">6. Finisher Reward Pool</div>
+            <div className="text-[11px] text-neutral-500">
+              6. Finisher Reward Pool
+            </div>
             <div className="mt-1 font-mono text-sm font-bold text-indigo-600 dark:text-indigo-400">
               {formatSol(econ.pool, { maxDecimals: 9 })}
             </div>
             <div className="mt-0.5 text-[10px] text-neutral-400">
-              {econ.nobodyEligible ? 'Nobody eligible (refunded)' : 'Shared by eligible finishers'}
+              {econ.nobodyEligible
+                ? "Nobody eligible (refunded)"
+                : "Shared by eligible finishers"}
             </div>
           </div>
         </div>
@@ -495,12 +565,14 @@ export function CohortDetailAndSettleScreen() {
             </h3>
           </div>
           <span className="font-mono text-xs text-neutral-400">
-            {cohortTxs.length} transaction{cohortTxs.length === 1 ? '' : 's'}
+            {cohortTxs.length} transaction{cohortTxs.length === 1 ? "" : "s"}
           </span>
         </div>
 
         {cohortTxs.length === 0 ? (
-          <p className="text-xs text-neutral-500">No simulated transactions recorded yet.</p>
+          <p className="text-xs text-neutral-500">
+            No simulated transactions recorded yet.
+          </p>
         ) : (
           <div className="space-y-2">
             {cohortTxs.slice(0, 20).map((tx) => {
@@ -514,9 +586,9 @@ export function CohortDetailAndSettleScreen() {
                     <div className="flex flex-wrap items-center gap-2">
                       <span
                         className={`rounded px-2 py-0.5 font-mono text-[10px] font-bold ${
-                          tx.status === 'SUCCESS'
-                            ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                            : 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
+                          tx.status === "SUCCESS"
+                            ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                            : "bg-rose-500/15 text-rose-700 dark:text-rose-300"
                         }`}
                       >
                         {tx.status}
@@ -529,7 +601,9 @@ export function CohortDetailAndSettleScreen() {
 
                     <button
                       type="button"
-                      onClick={() => setExpandedTxSig(isOpen ? null : tx.signature)}
+                      onClick={() =>
+                        setExpandedTxSig(isOpen ? null : tx.signature)
+                      }
                       className="inline-flex items-center gap-1 font-mono text-[11px] text-indigo-600 hover:underline dark:text-indigo-400"
                     >
                       {tx.signature.slice(0, 12)}...

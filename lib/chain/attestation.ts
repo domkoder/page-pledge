@@ -1,7 +1,7 @@
-import nacl from 'tweetnacl';
-import { ChainProgramError, OracleAttestation } from './types';
+import nacl from "tweetnacl";
+import { ChainProgramError, OracleAttestation } from "./types";
 
-export const ATTESTATION_DOMAIN = 'PAGEPLEDGE_ATT_V1';
+export const ATTESTATION_DOMAIN = "PAGEPLEDGE_ATT_V1";
 export const MIN_PASSING_SCORE = 75;
 
 /**
@@ -9,20 +9,19 @@ export const MIN_PASSING_SCORE = 75;
  * so offline mode, server routes, and browser MockChain share a consistent default oracle pubkey.
  */
 const DEFAULT_ORACLE_SEED = new Uint8Array([
-  0x50, 0x41, 0x47, 0x45, 0x50, 0x4c, 0x45, 0x44,
-  0x47, 0x45, 0x5f, 0x4f, 0x52, 0x41, 0x43, 0x4c,
-  0x45, 0x5f, 0x44, 0x45, 0x4d, 0x4f, 0x5f, 0x53,
-  0x45, 0x45, 0x44, 0x5f, 0x32, 0x30, 0x32, 0x36,
+  0x50, 0x41, 0x47, 0x45, 0x50, 0x4c, 0x45, 0x44, 0x47, 0x45, 0x5f, 0x4f, 0x52,
+  0x41, 0x43, 0x4c, 0x45, 0x5f, 0x44, 0x45, 0x4d, 0x4f, 0x5f, 0x53, 0x45, 0x45,
+  0x44, 0x5f, 0x32, 0x30, 0x32, 0x36,
 ]);
 
 export function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 export function hexToBytes(hex: string): Uint8Array {
-  const clean = hex.trim().replace(/^0x/i, '');
+  const clean = hex.trim().replace(/^0x/i, "");
   if (clean.length % 2 !== 0 || !/^[0-9a-fA-F]*$/.test(clean)) {
     throw new Error(`Invalid hex string: "${hex}"`);
   }
@@ -40,9 +39,13 @@ export function getDemoOracleKeypair(): {
   secretKey: Uint8Array;
 } {
   const envSeedHex =
-    typeof process !== 'undefined' ? process.env?.ORACLE_SECRET_SEED_HEX : undefined;
+    typeof process !== "undefined"
+      ? process.env?.ORACLE_SECRET_SEED_HEX
+      : undefined;
   const seed =
-    envSeedHex && envSeedHex.length === 64 ? hexToBytes(envSeedHex) : DEFAULT_ORACLE_SEED;
+    envSeedHex && envSeedHex.length === 64
+      ? hexToBytes(envSeedHex)
+      : DEFAULT_ORACLE_SEED;
   const kp = nacl.sign.keyPair.fromSeed(seed);
   return {
     publicKeyHex: bytesToHex(kp.publicKey),
@@ -70,7 +73,9 @@ export interface CanonicalAttestationFields {
  *
  * Uses length-prefixed UTF-8 / big-endian integer encoding so field boundaries can never collide.
  */
-export function buildAttestationPayload(fields: CanonicalAttestationFields): Uint8Array {
+export function buildAttestationPayload(
+  fields: CanonicalAttestationFields
+): Uint8Array {
   const canonicalString = [
     ATTESTATION_DOMAIN,
     fields.programId,
@@ -82,7 +87,7 @@ export function buildAttestationPayload(fields: CanonicalAttestationFields): Uin
     String(fields.score),
     fields.commitHash,
     String(fields.expiresAt),
-  ].join('||');
+  ].join("||");
 
   return new TextEncoder().encode(canonicalString);
 }
@@ -140,7 +145,7 @@ export function verifyAttestation(
     attestation.cohortEpoch !== ctx.expectedCohortEpoch
   ) {
     throw new ChainProgramError(
-      'WrongCohort',
+      "WrongCohort",
       `Attestation cohort (${attestation.cohortId}@${attestation.cohortEpoch}) does not match (${ctx.expectedCohortId}@${ctx.expectedCohortEpoch}).`
     );
   }
@@ -148,7 +153,7 @@ export function verifyAttestation(
   // 2. Check user match
   if (attestation.user !== ctx.expectedUser) {
     throw new ChainProgramError(
-      'WrongUser',
+      "WrongUser",
       `Attestation user (${attestation.user}) does not match caller/participant (${ctx.expectedUser}).`
     );
   }
@@ -156,7 +161,7 @@ export function verifyAttestation(
   // 3. Check expiry against simulated chain clock
   if (ctx.now > attestation.expiresAt) {
     throw new ChainProgramError(
-      'AttestationExpired',
+      "AttestationExpired",
       `Attestation expired at ${attestation.expiresAt} (current chain time: ${ctx.now}).`
     );
   }
@@ -164,7 +169,7 @@ export function verifyAttestation(
   // 4. Check passing score threshold (>= 75)
   if (attestation.score < MIN_PASSING_SCORE) {
     throw new ChainProgramError(
-      'ScoreTooLow',
+      "ScoreTooLow",
       `Attestation score ${attestation.score} is below minimum passing threshold (${MIN_PASSING_SCORE}).`
     );
   }
@@ -190,18 +195,31 @@ export function verifyAttestation(
     sigBytes = hexToBytes(attestation.signatureHex);
     pubkeyBytes = hexToBytes(ctx.oraclePubkeyHex);
   } catch {
-    throw new ChainProgramError('BadSignature', 'Malformed hex in signature or oracle public key.');
+    throw new ChainProgramError(
+      "BadSignature",
+      "Malformed hex in signature or oracle public key."
+    );
   }
 
-  if (sigBytes.length !== nacl.sign.signatureLength || pubkeyBytes.length !== nacl.sign.publicKeyLength) {
-    throw new ChainProgramError('BadSignature', 'Invalid signature or public key byte length.');
+  if (
+    sigBytes.length !== nacl.sign.signatureLength ||
+    pubkeyBytes.length !== nacl.sign.publicKeyLength
+  ) {
+    throw new ChainProgramError(
+      "BadSignature",
+      "Invalid signature or public key byte length."
+    );
   }
 
-  const isValid = nacl.sign.detached.verify(rebuiltPayload, sigBytes, pubkeyBytes);
+  const isValid = nacl.sign.detached.verify(
+    rebuiltPayload,
+    sigBytes,
+    pubkeyBytes
+  );
   if (!isValid) {
     throw new ChainProgramError(
-      'BadSignature',
-      'Ed25519 signature verification failed against cohort oracle public key and on-chain commit state.'
+      "BadSignature",
+      "Ed25519 signature verification failed against cohort oracle public key and on-chain commit state."
     );
   }
 }
@@ -210,7 +228,9 @@ export function verifyAttestation(
  * Deterministic SHA-256-like commitment hash helper (works synchronously in browser & Node).
  */
 export function hashAnswerText(answerText: string): string {
-  const bytes = new TextEncoder().encode(`PAGEPLEDGE_COMMIT_V1:${answerText.trim()}`);
+  const bytes = new TextEncoder().encode(
+    `PAGEPLEDGE_COMMIT_V1:${answerText.trim()}`
+  );
   const digest = nacl.hash(bytes); // SHA-512 in tweetnacl, take first 32 bytes (64 hex chars)
   return bytesToHex(digest.slice(0, 32));
 }

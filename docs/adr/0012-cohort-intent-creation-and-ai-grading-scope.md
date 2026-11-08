@@ -3,9 +3,11 @@
 **Status:** accepted (amends ADR 0003, ADR 0007, and ADR 0008)
 
 ## Context
+
 `p1.md`, `lib/intent/parser.ts`, and `lib/oracle/grader.ts` implement a natural-language cohort creation flow (`POST /api/intent` validated by a `.strict()` Zod schema and confirmed via a human-readable terms card), 5 built-in Rust Ownership & Borrowing reading passages, a `score >= 75` pass threshold (`MIN_PASSING_SCORE = 75`) with strict JSON-schema LLM grading + deterministic offline rubric fallback, a prompt-injection guardrail ("Try to Cheat"), and an off-chain Adaptive Practice Card. Meanwhile, ADR 0003 specified creator-supplied text hashed on-chain, ADR 0007 specified a `>= 70%` pass threshold, and ADR 0008 proposed additional anti-cheat mechanisms including PDF/URL ingestion and a live post-answer follow-up question.
 
 ## Decision
+
 1. **Cohort Creation & Material Attachment (`POST /api/intent` + Optional Custom Text):**
    - Primary creation experience is **Natural-Language Prompt -> `.strict()` Zod Intent (`title`, `durationDays` 1–90, `milestoneCount` 2–10, `stakeSol` 0.05–10, `maxParticipants` 2–50) -> Human-Readable Terms Card -> Confirm**.
    - Unsupported requests (leverage, custom protocol fees, creator payout cuts, manual slashing) are deterministically rejected with a clear explanation.
@@ -20,5 +22,6 @@
    - Post-submission live follow-up chat/voice questions from ADR 0008 are deferred beyond the hackathon MVP.
 
 ## Consequences
+
 - Every cohort creation and grading flow works 100% offline with zero API keys while supporting live Gemini/OpenAI structured grading when configured.
 - The on-chain `Cohort` PDA stores a single 32-byte `content_hash` representing the cohort's reading material (defaulting to `DEFAULT_CONTENT_HASH` or the SHA-256 digest of creator-pasted custom study text).

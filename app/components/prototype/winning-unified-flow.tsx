@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { MOCK_COHORTS, MOCK_QUIZ_QUESTIONS, CohortMock } from "./mock-data";
 
 export function WinningUnifiedFlow() {
-  const [selectedCohort, setSelectedCohort] = useState<CohortMock>(MOCK_COHORTS[0]);
+  const [selectedCohort, setSelectedCohort] = useState<CohortMock>(
+    MOCK_COHORTS[0]
+  );
   const [inQuiz, setInQuiz] = useState(false);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [secondsRemaining, setSecondsRemaining] = useState(600); // 10 mins
@@ -55,11 +57,16 @@ export function WinningUnifiedFlow() {
             Multi-Cohort Active Commitments
           </span>
           <h2 className="text-3xl font-black tracking-tight mt-1">
-            4.00 <span className="text-lg font-normal text-muted">SOL Total Staked</span>
+            4.00{" "}
+            <span className="text-lg font-normal text-muted">
+              SOL Total Staked
+            </span>
           </h2>
           <p className="text-xs text-neutral-500 mt-1">
             2 active cohorts • Next milestone due in{" "}
-            <span className="text-amber-500 font-semibold font-mono">18m 14s</span>
+            <span className="text-amber-500 font-semibold font-mono">
+              18m 14s
+            </span>
           </p>
         </div>
 
@@ -106,7 +113,9 @@ export function WinningUnifiedFlow() {
                       </span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-neutral-500">Cohort Vault Pool</span>
+                      <span className="text-neutral-500">
+                        Cohort Vault Pool
+                      </span>
                       <span className="font-mono text-neutral-700 dark:text-neutral-300">
                         {cohort.totalPledgedSol} SOL
                       </span>
@@ -114,7 +123,8 @@ export function WinningUnifiedFlow() {
                     <div className="flex justify-between text-xs">
                       <span className="text-neutral-500">Progress</span>
                       <span className="font-mono font-medium">
-                        {cohort.currentMilestoneIndex} / {cohort.totalMilestones} Milestones
+                        {cohort.currentMilestoneIndex} /{" "}
+                        {cohort.totalMilestones} Milestones
                       </span>
                     </div>
                   </div>
@@ -127,7 +137,9 @@ export function WinningUnifiedFlow() {
                       <div className="mt-1 flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-mono text-[11px]">
                         <span>⏳ Due in 18 min</span>
                         <span>•</span>
-                        <span>Penalty: {(cohort.forfeitBps / 100).toFixed(0)}%</span>
+                        <span>
+                          Penalty: {(cohort.forfeitBps / 100).toFixed(0)}%
+                        </span>
                       </div>
                     )}
                   </div>
@@ -169,17 +181,23 @@ export function WinningUnifiedFlow() {
                 </span>
               </div>
               <h2 className="text-2xl font-black text-neutral-900 dark:text-white mt-1">
-                {selectedCohort.title} • Milestone {selectedCohort.currentMilestoneIndex}
+                {selectedCohort.title} • Milestone{" "}
+                {selectedCohort.currentMilestoneIndex}
               </h2>
               <p className="text-xs text-neutral-500">
-                Question {currentQuestionIdx + 1} of {MOCK_QUIZ_QUESTIONS.length} • Verifying conceptual depth & exact citations
+                Question {currentQuestionIdx + 1} of{" "}
+                {MOCK_QUIZ_QUESTIONS.length} • Verifying conceptual depth &
+                exact citations
               </p>
             </div>
 
             {/* Radial Countdown Timer (Variant C) */}
             <div className="flex items-center gap-4 bg-neutral-100 dark:bg-neutral-900/80 px-5 py-3 rounded-2xl border border-neutral-200 dark:border-neutral-800">
               <div className="relative w-12 h-12 flex items-center justify-center">
-                <svg className="w-12 h-12 -rotate-90 transform" viewBox="0 0 36 36">
+                <svg
+                  className="w-12 h-12 -rotate-90 transform"
+                  viewBox="0 0 36 36"
+                >
                   <path
                     className="text-neutral-300 dark:text-neutral-800"
                     strokeWidth="3.5"
@@ -188,7 +206,11 @@ export function WinningUnifiedFlow() {
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
                   <path
-                    className={secondsRemaining < 120 ? "text-rose-500 animate-pulse" : "text-amber-500"}
+                    className={
+                      secondsRemaining < 120
+                        ? "text-rose-500 animate-pulse"
+                        : "text-amber-500"
+                    }
                     strokeDasharray={`${timerPercentage}, 100`}
                     strokeWidth="3.5"
                     strokeLinecap="round"
@@ -206,7 +228,8 @@ export function WinningUnifiedFlow() {
                   Time Remaining
                 </span>
                 <span className="text-sm font-bold font-mono text-neutral-900 dark:text-white">
-                  {minutes.toString().padStart(2, "0")}:{seconds.toString().padStart(2, "0")}
+                  {minutes.toString().padStart(2, "0")}:
+                  {seconds.toString().padStart(2, "0")}
                 </span>
               </div>
             </div>
@@ -231,7 +254,9 @@ export function WinningUnifiedFlow() {
                     &quot;{selectedCohort.materialSnippet}&quot;
                   </p>
                   <p className="text-[11px] text-neutral-400">
-                    Prompt Rule: Your answer must directly incorporate authentic citations from the assigned text above. The AI Oracle matches citations against this verified material hash.
+                    Prompt Rule: Your answer must directly incorporate authentic
+                    citations from the assigned text above. The AI Oracle
+                    matches citations against this verified material hash.
                   </p>
                 </div>
 
@@ -244,7 +269,8 @@ export function WinningUnifiedFlow() {
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                   </div>
                   <p className="text-xs text-neutral-300">
-                    &quot;Explain in your own words why deriving accounts off-curve prevents private key spoofing.&quot;
+                    &quot;Explain in your own words why deriving accounts
+                    off-curve prevents private key spoofing.&quot;
                   </p>
 
                   <div className="flex items-center gap-3">
@@ -264,9 +290,15 @@ export function WinningUnifiedFlow() {
                           : "bg-neutral-800 hover:bg-neutral-700 text-neutral-200"
                       }`}
                     >
-                      <span>{isRecording ? "⏹ Recording Voice..." : "🎙 Record Oral Defense (20s)"}</span>
+                      <span>
+                        {isRecording
+                          ? "⏹ Recording Voice..."
+                          : "🎙 Record Oral Defense (20s)"}
+                      </span>
                     </button>
-                    <span className="text-[11px] text-neutral-500">or type below</span>
+                    <span className="text-[11px] text-neutral-500">
+                      or type below
+                    </span>
                   </div>
 
                   {adaptiveAnswer && (
@@ -298,7 +330,10 @@ export function WinningUnifiedFlow() {
                       placeholder="Explain your understanding..."
                       value={answers[currentQ.id] || ""}
                       onChange={(e) =>
-                        setAnswers({ ...answers, [currentQ.id]: e.target.value })
+                        setAnswers({
+                          ...answers,
+                          [currentQ.id]: e.target.value,
+                        })
                       }
                       className="w-full rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 p-3 text-xs focus:ring-2 focus:ring-amber-500 outline-hidden font-sans"
                     />
@@ -346,7 +381,9 @@ export function WinningUnifiedFlow() {
                         onClick={handleCompleteDefense}
                         className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold text-xs uppercase tracking-wider cursor-pointer shadow-md disabled:opacity-50"
                       >
-                        {evaluating ? "AI Oracle Evaluating..." : "Verify & Sign Attestation"}
+                        {evaluating
+                          ? "AI Oracle Evaluating..."
+                          : "Verify & Sign Attestation"}
                       </button>
                     )}
                   </div>
@@ -363,10 +400,12 @@ export function WinningUnifiedFlow() {
                 Milestone Defense Verified: 94% Grade
               </h3>
               <p className="text-xs text-neutral-500 max-w-md mx-auto">
-                Textual citations & adaptive follow-up passed. The Oracle key has authorized your Ed25519 completion payload.
+                Textual citations & adaptive follow-up passed. The Oracle key
+                has authorized your Ed25519 completion payload.
               </p>
               <div className="p-4 rounded-xl bg-neutral-100 dark:bg-neutral-900 max-w-md mx-auto text-left font-mono text-[10px] text-neutral-400 break-all border border-neutral-200 dark:border-neutral-800">
-                Ed25519 Signature: 4W9x...7yZ0 (Cohort: {selectedCohort.id}, Milestone: 2)
+                Ed25519 Signature: 4W9x...7yZ0 (Cohort: {selectedCohort.id},
+                Milestone: 2)
               </div>
               <div className="flex justify-center gap-3 pt-4">
                 <button

@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { BookMarked, Layers } from 'lucide-react';
-import { ClusterSelect } from './components/cluster-select';
-import { GridBackground } from './components/grid-background';
-import { PagePledgeWorkbench } from './components/pagepledge/pagepledge-workbench';
-import { PrototypeAppFlow } from './components/prototype/prototype-app-flow';
-import { ThemeToggle } from './components/theme-toggle';
-import { WalletButton } from './components/wallet-button';
+import { useState } from "react";
+import { BookMarked, Layers } from "lucide-react";
+import { ClusterSelect } from "./components/cluster-select";
+import { GridBackground } from "./components/grid-background";
+import { PagePledgeWorkbench } from "./components/pagepledge/pagepledge-workbench";
+import { PrototypeAppFlow } from "./components/prototype/prototype-app-flow";
+import { ThemeToggle } from "./components/theme-toggle";
+import { WalletButton } from "./components/wallet-button";
 
 export default function Home() {
   const [showLegacyVariants, setShowLegacyVariants] = useState(false);
@@ -25,13 +25,16 @@ export default function Home() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-black tracking-tight">PagePledge</h1>
+                <h1 className="text-base font-black tracking-tight">
+                  PagePledge
+                </h1>
                 <span className="rounded-md bg-emerald-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
                   Solana Native SOL Cohort Vaults
                 </span>
               </div>
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                AI grades learning • Deterministic Solana program rules enforce stakes &amp; payouts
+                AI grades learning • Deterministic Solana program rules enforce
+                stakes &amp; payouts
               </p>
             </div>
           </div>
@@ -43,7 +46,9 @@ export default function Home() {
               className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-300 bg-white px-3 py-1.5 text-xs font-semibold hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900"
             >
               <Layers className="h-3.5 w-3.5 text-indigo-500" />
-              {showLegacyVariants ? 'Back to Full Protocol Workbench' : 'UI Layout Variants (A/B/C)'}
+              {showLegacyVariants
+                ? "Back to Full Protocol Workbench"
+                : "UI Layout Variants (A/B/C)"}
             </button>
             <ThemeToggle />
             <ClusterSelect />

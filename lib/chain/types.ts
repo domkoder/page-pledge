@@ -1,29 +1,29 @@
-import { EconomicsResult, MilestoneOutcome } from '../economics';
+import { EconomicsResult, MilestoneOutcome } from "../economics";
 
 /**
  * Exact program error codes from Section 3 of p1.md
  */
 export type ChainErrorCode =
-  | 'WrongUser'
-  | 'WrongCohort'
-  | 'AttestationExpired'
-  | 'ScoreTooLow'
-  | 'AlreadyCompleted'
-  | 'SubmissionWindowClosed'
-  | 'NotCommitted'
-  | 'SettlementTooEarly'
-  | 'AlreadySettled'
-  | 'NotFinalized'
-  | 'AlreadyClaimed'
-  | 'BadSignature'
-  | 'CohortNotOpen'
-  | 'CohortFull'
-  | 'MinParticipantsNotMet'
-  | 'MaxAttemptsExceeded'
-  | 'AlreadyJoined'
-  | 'InsufficientBalance'
-  | 'NotAllUsersSettled'
-  | 'AlreadyFinalized';
+  | "WrongUser"
+  | "WrongCohort"
+  | "AttestationExpired"
+  | "ScoreTooLow"
+  | "AlreadyCompleted"
+  | "SubmissionWindowClosed"
+  | "NotCommitted"
+  | "SettlementTooEarly"
+  | "AlreadySettled"
+  | "NotFinalized"
+  | "AlreadyClaimed"
+  | "BadSignature"
+  | "CohortNotOpen"
+  | "CohortFull"
+  | "MinParticipantsNotMet"
+  | "MaxAttemptsExceeded"
+  | "AlreadyJoined"
+  | "InsufficientBalance"
+  | "NotAllUsersSettled"
+  | "AlreadyFinalized";
 
 export class ChainProgramError extends Error {
   public readonly code: ChainErrorCode;
@@ -31,15 +31,17 @@ export class ChainProgramError extends Error {
 
   constructor(code: ChainErrorCode, message: string, txSignature?: string) {
     super(`[ProgramError:${code}] ${message}`);
-    this.name = 'ChainProgramError';
+    this.name = "ChainProgramError";
     this.code = code;
-    this.txSignature = txSignature ?? `err_${Math.random().toString(36).slice(2, 10)}`;
+    this.txSignature =
+      txSignature ?? `err_${Math.random().toString(36).slice(2, 10)}`;
   }
 }
 
-export type CohortStatus = 'Open' | 'Active' | 'Settling' | 'Finalized';
+export type CohortStatus = "Open" | "Active" | "Settling" | "Finalized";
 
-export type PersonaId = 'alice' | 'bob' | 'carol' | 'dave' | 'keeper' | 'creator';
+export type PersonaId =
+  "alice" | "bob" | "carol" | "dave" | "keeper" | "creator";
 
 export interface PersonaAccount {
   id: PersonaId;
@@ -124,18 +126,18 @@ export interface SimulatedTransactionLog {
   signature: string;
   timestamp: number;
   instruction:
-    | 'create_cohort'
-    | 'start_cohort'
-    | 'join'
-    | 'commit_submission'
-    | 'complete_milestone'
-    | 'settle_user'
-    | 'finalize'
-    | 'claim'
-    | 'faucet';
+    | "create_cohort"
+    | "start_cohort"
+    | "join"
+    | "commit_submission"
+    | "complete_milestone"
+    | "settle_user"
+    | "finalize"
+    | "claim"
+    | "faucet";
   caller: string;
   cohortId?: string;
-  status: 'SUCCESS' | 'ERROR';
+  status: "SUCCESS" | "ERROR";
   errorCode?: ChainErrorCode;
   summary: string;
   details: Record<string, string | number | boolean>;
@@ -166,7 +168,7 @@ export interface TxResult<T = void> {
  * UI code must only talk to this interface.
  */
 export interface ChainClient {
-  readonly mode: 'mock' | 'devnet';
+  readonly mode: "mock" | "devnet";
 
   // Read state
   getNow(): number;
@@ -184,8 +186,14 @@ export interface ChainClient {
   computeLiveEconomics(cohortId: string): EconomicsResult;
 
   // Protocol instructions (matching future Anchor instructions)
-  createCohort(creator: string, intent: ValidatedCohortIntent): Promise<TxResult<CohortAccount>>;
-  startCohort(caller: string, cohortId: string): Promise<TxResult<CohortAccount>>;
+  createCohort(
+    creator: string,
+    intent: ValidatedCohortIntent
+  ): Promise<TxResult<CohortAccount>>;
+  startCohort(
+    caller: string,
+    cohortId: string
+  ): Promise<TxResult<CohortAccount>>;
   join(user: string, cohortId: string): Promise<TxResult<CohortAccount>>;
   commitSubmission(
     user: string,
@@ -204,12 +212,20 @@ export interface ChainClient {
     caller: string,
     cohortId: string,
     targetUser: string
-  ): Promise<TxResult<{ missedCount: number; forfeit: bigint; bounty: bigint }>>;
-  finalize(caller: string, cohortId: string): Promise<TxResult<EconomicsResult>>;
+  ): Promise<
+    TxResult<{ missedCount: number; forfeit: bigint; bounty: bigint }>
+  >;
+  finalize(
+    caller: string,
+    cohortId: string
+  ): Promise<TxResult<EconomicsResult>>;
   claim(user: string, cohortId: string): Promise<TxResult<{ payout: bigint }>>;
 
   // Demo & Simulation controls
-  faucet(user: string, amountLamports?: bigint): Promise<TxResult<{ newBalance: bigint }>>;
+  faucet(
+    user: string,
+    amountLamports?: bigint
+  ): Promise<TxResult<{ newBalance: bigint }>>;
   advanceClock(deltaSeconds: number): void;
   setClock(timestampSeconds: number): void;
   setYieldAprBps(aprBps: bigint): void;

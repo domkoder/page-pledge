@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   Bot,
   CheckCircle2,
@@ -10,8 +10,8 @@ import {
   ShieldCheck,
   Terminal,
   XCircle,
-} from 'lucide-react';
-import { usePagePledgeStore } from '@/lib/store/use-pagepledge-store';
+} from "lucide-react";
+import { usePagePledgeStore } from "@/lib/store/use-pagepledge-store";
 
 export function KeeperAndSecurityScreen() {
   const {
@@ -65,10 +65,13 @@ export function KeeperAndSecurityScreen() {
               </span>
             </div>
             <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-              Sweeps every few seconds and calls the exact same public{' '}
-              <code className="font-mono">ChainClient.settleUser</code> &amp;{' '}
-              <code className="font-mono">finalize</code> methods as any participant persona. Any persona (Alice, Bob, Carol, Dave) can settle eligible users and earn the{' '}
-              <code className="font-mono">min(1% forfeit, 0.01 SOL)</code> bounty.
+              Sweeps every few seconds and calls the exact same public{" "}
+              <code className="font-mono">ChainClient.settleUser</code> &amp;{" "}
+              <code className="font-mono">finalize</code> methods as any
+              participant persona. Any persona (Alice, Bob, Carol, Dave) can
+              settle eligible users and earn the{" "}
+              <code className="font-mono">min(1% forfeit, 0.01 SOL)</code>{" "}
+              bounty.
             </p>
           </div>
 
@@ -80,19 +83,21 @@ export function KeeperAndSecurityScreen() {
               className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-300 bg-white px-3.5 py-2 text-xs font-bold hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800"
             >
               <Play className="h-3.5 w-3.5" />
-              {sweeping ? 'Sweeping...' : 'Trigger 1 Sweep Now'}
+              {sweeping ? "Sweeping..." : "Trigger 1 Sweep Now"}
             </button>
             <button
               type="button"
               onClick={() => setKeeperBotEnabled(!keeperBotEnabled)}
               className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-white transition ${
                 keeperBotEnabled
-                  ? 'bg-emerald-600 hover:bg-emerald-700'
-                  : 'bg-indigo-600 hover:bg-indigo-700'
+                  ? "bg-emerald-600 hover:bg-emerald-700"
+                  : "bg-indigo-600 hover:bg-indigo-700"
               }`}
             >
               <Bot className="h-4 w-4" />
-              {keeperBotEnabled ? 'Auto-Sweeper: RUNNING (Pause)' : 'Start Auto-Sweeper (Every 3s)'}
+              {keeperBotEnabled
+                ? "Auto-Sweeper: RUNNING (Pause)"
+                : "Start Auto-Sweeper (Every 3s)"}
             </button>
           </div>
         </div>
@@ -108,7 +113,9 @@ export function KeeperAndSecurityScreen() {
 
           {keeperLogs.length === 0 ? (
             <p className="py-4 text-center text-neutral-500">
-              No keeper sweeps recorded yet. Toggle Auto-Sweeper ON or click &quot;Trigger 1 Sweep Now&quot; (jump past grace window first to see settlements).
+              No keeper sweeps recorded yet. Toggle Auto-Sweeper ON or click
+              &quot;Trigger 1 Sweep Now&quot; (jump past grace window first to
+              see settlements).
             </p>
           ) : (
             <div className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
@@ -120,9 +127,9 @@ export function KeeperAndSecurityScreen() {
                   <div className="flex items-center gap-2">
                     <span
                       className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                        log.action === 'SETTLE' || log.action === 'FINALIZE'
-                          ? 'bg-emerald-500/20 text-emerald-300'
-                          : 'bg-neutral-800 text-neutral-400'
+                        log.action === "SETTLE" || log.action === "FINALIZE"
+                          ? "bg-emerald-500/20 text-emerald-300"
+                          : "bg-neutral-800 text-neutral-400"
                       }`}
                     >
                       {log.action}
@@ -152,8 +159,10 @@ export function KeeperAndSecurityScreen() {
               </h2>
             </div>
             <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-              Executes 9 adversarial attempts against a live cohort on{' '}
-              <code className="font-mono">MockChain</code> and verifies that every single exploit is deterministically rejected with the exact program error code.
+              Executes 9 adversarial attempts against a live cohort on{" "}
+              <code className="font-mono">MockChain</code> and verifies that
+              every single exploit is deterministically rejected with the exact
+              program error code.
             </p>
           </div>
 
@@ -164,22 +173,27 @@ export function KeeperAndSecurityScreen() {
             className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-rose-700 disabled:opacity-50"
           >
             <ShieldCheck className="h-4 w-4" />
-            {runningSec ? 'Executing 9 Exploits...' : 'Run Security Demo Against Live Cohort'}
+            {runningSec
+              ? "Executing 9 Exploits..."
+              : "Run Security Demo Against Live Cohort"}
           </button>
         </div>
 
         {securityDemoRows.length === 0 ? (
           <div className="rounded-xl border border-dashed border-neutral-300 p-8 text-center dark:border-neutral-800">
             <p className="text-xs text-neutral-500">
-              Click <strong>&quot;Run Security Demo Against Live Cohort&quot;</strong> above (or in the Demo Control Drawer) to execute all 9 protocol exploit attempts and inspect the results table.
+              Click{" "}
+              <strong>&quot;Run Security Demo Against Live Cohort&quot;</strong>{" "}
+              above (or in the Demo Control Drawer) to execute all 9 protocol
+              exploit attempts and inspect the results table.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <div className="mb-2 font-mono text-xs text-emerald-600 dark:text-emerald-400">
-              Target Cohort: <strong>{securityDemoCohortId}</strong> • All{' '}
-              {securityDemoRows.filter((r) => r.passedCheck).length}/{securityDemoRows.length}{' '}
-              adversarial vectors blocked!
+              Target Cohort: <strong>{securityDemoCohortId}</strong> • All{" "}
+              {securityDemoRows.filter((r) => r.passedCheck).length}/
+              {securityDemoRows.length} adversarial vectors blocked!
             </div>
             <table className="w-full border-collapse text-left text-xs">
               <thead>
@@ -193,7 +207,10 @@ export function KeeperAndSecurityScreen() {
               </thead>
               <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
                 {securityDemoRows.map((row) => (
-                  <tr key={row.id} className="hover:bg-neutral-50/60 dark:hover:bg-neutral-950/40">
+                  <tr
+                    key={row.id}
+                    className="hover:bg-neutral-50/60 dark:hover:bg-neutral-950/40"
+                  >
                     <td className="py-3 pr-3 font-bold">{row.attempt}</td>
                     <td className="px-3 py-3 text-neutral-600 dark:text-neutral-400">
                       <div>{row.description}</div>

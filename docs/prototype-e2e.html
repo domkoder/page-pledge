@@ -1,657 +1,916 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PagePledge — End-to-End Interactive Protocol & App Prototype</title>
-  <style>
-    :root {
-      --bg: #090a0f;
-      --card-bg: #12151e;
-      --border: #222736;
-      --text: #f0f2f8;
-      --text-muted: #8b92a5;
-      --amber: #f59e0b;
-      --amber-glow: rgba(245, 158, 11, 0.15);
-      --emerald: #10b981;
-      --rose: #f43f5e;
-      --purple: #8b5cf6;
-      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-sans);
-      padding: 24px;
-      line-height: 1.5;
-    }
-    header {
-      max-width: 1200px;
-      margin: 0 auto 24px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-    .badge {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 9999px;
-      font-size: 11px;
-      font-family: var(--font-mono);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .badge-amber { background: var(--amber-glow); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.3); }
-    .badge-emerald { background: rgba(16, 185, 129, 0.15); color: var(--emerald); border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-rose { background: rgba(244, 63, 94, 0.15); color: var(--rose); border: 1px solid rgba(244, 63, 94, 0.3); }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PagePledge — End-to-End Interactive Protocol & App Prototype</title>
+    <style>
+      :root {
+        --bg: #090a0f;
+        --card-bg: #12151e;
+        --border: #222736;
+        --text: #f0f2f8;
+        --text-muted: #8b92a5;
+        --amber: #f59e0b;
+        --amber-glow: rgba(245, 158, 11, 0.15);
+        --emerald: #10b981;
+        --rose: #f43f5e;
+        --purple: #8b5cf6;
+        --font-mono:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        --font-sans:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-sans);
+        padding: 24px;
+        line-height: 1.5;
+      }
+      header {
+        max-width: 1200px;
+        margin: 0 auto 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-family: var(--font-mono);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .badge-amber {
+        background: var(--amber-glow);
+        color: var(--amber);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+      .badge-emerald {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--emerald);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+      .badge-rose {
+        background: rgba(244, 63, 94, 0.15);
+        color: var(--rose);
+        border: 1px solid rgba(244, 63, 94, 0.3);
+      }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-    }
-    @media (max-width: 900px) {
-      .container { grid-template-columns: 1fr; }
-    }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      @media (max-width: 900px) {
+        .container {
+          grid-template-columns: 1fr;
+        }
+      }
 
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 24px;
-    }
-    .card-title {
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      font-family: var(--font-mono);
-      color: var(--amber);
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 24px;
+      }
+      .card-title {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-family: var(--font-mono);
+        color: var(--amber);
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
 
-    /* Guided Walkthrough Scenarios */
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 8px;
-    }
-    .tab-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 12px;
-      font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .tab-btn.active {
-      background: var(--amber);
-      color: #000;
-    }
+      /* Guided Walkthrough Scenarios */
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 8px;
+      }
+      .tab-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .tab-btn.active {
+        background: var(--amber);
+        color: #000;
+      }
 
-    /* Button rows */
-    .btn-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-      gap: 10px;
-      margin-top: 12px;
-    }
-    button.action-btn {
-      background: #1c2230;
-      color: var(--text);
-      border: 1px solid #2d3548;
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      text-align: left;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    button.action-btn:hover:not(:disabled) {
-      background: #273044;
-      border-color: var(--amber);
-      color: #fff;
-    }
-    button.action-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-    button.action-btn strong {
-      display: block;
-      color: var(--amber);
-      font-family: var(--font-mono);
-      font-size: 10px;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
+      /* Button rows */
+      .btn-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 10px;
+        margin-top: 12px;
+      }
+      button.action-btn {
+        background: #1c2230;
+        color: var(--text);
+        border: 1px solid #2d3548;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      button.action-btn:hover:not(:disabled) {
+        background: #273044;
+        border-color: var(--amber);
+        color: #fff;
+      }
+      button.action-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      button.action-btn strong {
+        display: block;
+        color: var(--amber);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
 
-    /* Live State Views */
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      font-size: 13px;
-    }
-    .stat-row:last-child { border-bottom: none; }
-    .stat-val { font-family: var(--font-mono); font-weight: bold; }
+      /* Live State Views */
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 13px;
+      }
+      .stat-row:last-child {
+        border-bottom: none;
+      }
+      .stat-val {
+        font-family: var(--font-mono);
+        font-weight: bold;
+      }
 
-    /* Participants Table */
-    table.data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      margin-top: 10px;
-    }
-    table.data-table th, table.data-table td {
-      padding: 8px 10px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-    table.data-table th {
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      text-transform: uppercase;
-    }
+      /* Participants Table */
+      table.data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        margin-top: 10px;
+      }
+      table.data-table th,
+      table.data-table td {
+        padding: 8px 10px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      table.data-table th {
+        color: var(--text-muted);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        text-transform: uppercase;
+      }
 
-    /* Log feed */
-    .log-feed {
-      background: #0b0d13;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      height: 240px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column-reverse;
-      gap: 6px;
-    }
-    .log-entry {
-      line-height: 1.4;
-      color: var(--text-muted);
-    }
-    .log-entry.event { color: #60a5fa; }
-    .log-entry.pass { color: var(--emerald); font-weight: bold; }
-    .log-entry.fail { color: var(--rose); font-weight: bold; }
-    .log-entry.sol { color: var(--amber); }
+      /* Log feed */
+      .log-feed {
+        background: #0b0d13;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        height: 240px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 6px;
+      }
+      .log-entry {
+        line-height: 1.4;
+        color: var(--text-muted);
+      }
+      .log-entry.event {
+        color: #60a5fa;
+      }
+      .log-entry.pass {
+        color: var(--emerald);
+        font-weight: bold;
+      }
+      .log-entry.fail {
+        color: var(--rose);
+        font-weight: bold;
+      }
+      .log-entry.sol {
+        color: var(--amber);
+      }
 
-    .step-box {
-      background: #181c28;
-      border: 1px dashed var(--amber);
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 14px;
-      font-size: 12px;
-    }
-  </style>
-</head>
-<body>
-
-  <header>
-    <div>
-      <h1 style="font-size: 20px; font-weight: 900; letter-spacing: -0.02em;">
-        PagePledge <span style="font-weight: 400; color: var(--text-muted);">End-to-End Logic & UI Prototype</span>
-      </h1>
-      <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
-        Interactive validation for 9 ADRs: AI Quiz + Oracle Attestation, Permissionless Settle, & Payout Invariant.
-      </p>
-    </div>
-    <div style="display: flex; gap: 8px;">
-      <span class="badge badge-amber">Solana Anchor Vault</span>
-      <span class="badge badge-emerald">Oracle Attestation (Ed25519)</span>
-    </div>
-  </header>
-
-  <div class="container">
-    
-    <!-- LEFT COLUMN: CONTROLS & SCENARIOS -->
-    <div>
-      
-      <!-- Walkthrough Scenarios -->
-      <div class="card">
-        <div class="card-title">
-          <span>Guided Scenario Walkthroughs</span>
-          <span style="font-size: 10px; color: var(--text-muted);">Step-by-Step</span>
-        </div>
-
-        <div class="tabs">
-          <button class="tab-btn active" onclick="switchScenario('happy')">1. The Happy Path</button>
-          <button class="tab-btn" onclick="switchScenario('slash')">2. Missed Milestone Settle</button>
-          <button class="tab-btn" onclick="switchScenario('cheating')">3. Adaptive AI Anti-Cheat</button>
-          <button class="tab-btn" onclick="switchScenario('override')">4. Creator Override (ADR 0002)</button>
-        </div>
-
-        <div id="scenario-guide" class="step-box">
-          <!-- Populated by JS -->
-        </div>
-
-        <div id="scenario-btn-container">
-          <!-- Next button for current guided step -->
-        </div>
-      </div>
-
-      <!-- Free Play Actions -->
-      <div class="card">
-        <div class="card-title">
-          <span>Free-Play Action Center</span>
-          <span style="font-size: 10px; color: var(--text-muted);">Click in Any Order</span>
-        </div>
-
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
-          Drive the state machine directly to test edge cases:
+      .step-box {
+        background: #181c28;
+        border: 1px dashed var(--amber);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1 style="font-size: 20px; font-weight: 900; letter-spacing: -0.02em">
+          PagePledge
+          <span style="font-weight: 400; color: var(--text-muted)"
+            >End-to-End Logic & UI Prototype</span
+          >
+        </h1>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px">
+          Interactive validation for 9 ADRs: AI Quiz + Oracle Attestation,
+          Permissionless Settle, & Payout Invariant.
         </p>
-
-        <div class="btn-grid">
-          <button class="action-btn" onclick="doAction('join_wallet')">
-            <strong>Action 1</strong>
-            + Join Wallet 4 (Bob)
-          </button>
-          <button class="action-btn" onclick="doAction('submit_ai_pass')">
-            <strong>Action 2 (ADR 0005)</strong>
-            Alice Passes Quiz (Ed25519)
-          </button>
-          <button class="action-btn" onclick="doAction('submit_ai_fail')">
-            <strong>Action 3 (ADR 0001)</strong>
-            Bob Fails Quiz (No Penalty)
-          </button>
-          <button class="action-btn" onclick="doAction('advance_time')">
-            <strong>Action 4</strong>
-            ⏳ Advance Time (+20 Mins)
-          </button>
-          <button class="action-btn" onclick="doAction('permissionless_settle')">
-            <strong>Action 5 (ADR 0007)</strong>
-            Keeper: Settle Deadline
-          </button>
-          <button class="action-btn" onclick="doAction('creator_override')">
-            <strong>Action 6 (ADR 0002)</strong>
-            Creator Override Charlie
-          </button>
-          <button class="action-btn" onclick="doAction('claim_rewards')">
-            <strong>Action 7 (ADR 0006)</strong>
-            Claim Payouts & Dust
-          </button>
-          <button class="action-btn" onclick="doAction('reset')" style="border-color: var(--rose);">
-            <strong style="color: var(--rose);">Reset All</strong>
-            ↺ Reset State
-          </button>
-        </div>
       </div>
+      <div style="display: flex; gap: 8px">
+        <span class="badge badge-amber">Solana Anchor Vault</span>
+        <span class="badge badge-emerald">Oracle Attestation (Ed25519)</span>
+      </div>
+    </header>
 
-      <!-- On-Chain Invariant Verifier -->
-      <div class="card">
-        <div class="card-title">
-          <span>Mathematical Invariant Verifier</span>
-          <span id="invariant-badge" class="badge badge-emerald">Valid</span>
+    <div class="container">
+      <!-- LEFT COLUMN: CONTROLS & SCENARIOS -->
+      <div>
+        <!-- Walkthrough Scenarios -->
+        <div class="card">
+          <div class="card-title">
+            <span>Guided Scenario Walkthroughs</span>
+            <span style="font-size: 10px; color: var(--text-muted)"
+              >Step-by-Step</span
+            >
+          </div>
+
+          <div class="tabs">
+            <button class="tab-btn active" onclick="switchScenario('happy')">
+              1. The Happy Path
+            </button>
+            <button class="tab-btn" onclick="switchScenario('slash')">
+              2. Missed Milestone Settle
+            </button>
+            <button class="tab-btn" onclick="switchScenario('cheating')">
+              3. Adaptive AI Anti-Cheat
+            </button>
+            <button class="tab-btn" onclick="switchScenario('override')">
+              4. Creator Override (ADR 0002)
+            </button>
+          </div>
+
+          <div id="scenario-guide" class="step-box">
+            <!-- Populated by JS -->
+          </div>
+
+          <div id="scenario-btn-container">
+            <!-- Next button for current guided step -->
+          </div>
         </div>
-        <div style="font-family: var(--font-mono); font-size: 12px; background: #0b0d13; padding: 12px; border-radius: 8px;">
-          <div>Vault Balance: <span id="inv-vault" style="color: var(--amber);">0.00 SOL</span></div>
-          <div>Total Participant Claims: <span id="inv-claims" style="color: var(--emerald);">0.00 SOL</span></div>
-          <div>Forfeiture Reward Pool: <span id="inv-pool" style="color: var(--purple);">0.00 SOL</span></div>
-          <div style="margin-top: 8px; border-top: 1px solid #222; padding-top: 6px; color: var(--text-muted); font-size: 11px;">
-            Invariant: <code>Sum(Pledges Remaining) + RewardPool == Vault Lamports</code>
+
+        <!-- Free Play Actions -->
+        <div class="card">
+          <div class="card-title">
+            <span>Free-Play Action Center</span>
+            <span style="font-size: 10px; color: var(--text-muted)"
+              >Click in Any Order</span
+            >
+          </div>
+
+          <p
+            style="
+              font-size: 12px;
+              color: var(--text-muted);
+              margin-bottom: 10px;
+            "
+          >
+            Drive the state machine directly to test edge cases:
+          </p>
+
+          <div class="btn-grid">
+            <button class="action-btn" onclick="doAction('join_wallet')">
+              <strong>Action 1</strong>
+              + Join Wallet 4 (Bob)
+            </button>
+            <button class="action-btn" onclick="doAction('submit_ai_pass')">
+              <strong>Action 2 (ADR 0005)</strong>
+              Alice Passes Quiz (Ed25519)
+            </button>
+            <button class="action-btn" onclick="doAction('submit_ai_fail')">
+              <strong>Action 3 (ADR 0001)</strong>
+              Bob Fails Quiz (No Penalty)
+            </button>
+            <button class="action-btn" onclick="doAction('advance_time')">
+              <strong>Action 4</strong>
+              ⏳ Advance Time (+20 Mins)
+            </button>
+            <button
+              class="action-btn"
+              onclick="doAction('permissionless_settle')"
+            >
+              <strong>Action 5 (ADR 0007)</strong>
+              Keeper: Settle Deadline
+            </button>
+            <button class="action-btn" onclick="doAction('creator_override')">
+              <strong>Action 6 (ADR 0002)</strong>
+              Creator Override Charlie
+            </button>
+            <button class="action-btn" onclick="doAction('claim_rewards')">
+              <strong>Action 7 (ADR 0006)</strong>
+              Claim Payouts & Dust
+            </button>
+            <button
+              class="action-btn"
+              onclick="doAction('reset')"
+              style="border-color: var(--rose)"
+            >
+              <strong style="color: var(--rose)">Reset All</strong>
+              ↺ Reset State
+            </button>
+          </div>
+        </div>
+
+        <!-- On-Chain Invariant Verifier -->
+        <div class="card">
+          <div class="card-title">
+            <span>Mathematical Invariant Verifier</span>
+            <span id="invariant-badge" class="badge badge-emerald">Valid</span>
+          </div>
+          <div
+            style="
+              font-family: var(--font-mono);
+              font-size: 12px;
+              background: #0b0d13;
+              padding: 12px;
+              border-radius: 8px;
+            "
+          >
+            <div>
+              Vault Balance:
+              <span id="inv-vault" style="color: var(--amber)">0.00 SOL</span>
+            </div>
+            <div>
+              Total Participant Claims:
+              <span id="inv-claims" style="color: var(--emerald)"
+                >0.00 SOL</span
+              >
+            </div>
+            <div>
+              Forfeiture Reward Pool:
+              <span id="inv-pool" style="color: var(--purple)">0.00 SOL</span>
+            </div>
+            <div
+              style="
+                margin-top: 8px;
+                border-top: 1px solid #222;
+                padding-top: 6px;
+                color: var(--text-muted);
+                font-size: 11px;
+              "
+            >
+              Invariant:
+              <code>Sum(Pledges Remaining) + RewardPool == Vault Lamports</code>
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- RIGHT COLUMN: PROTOCOL STATE & LIVE LOGS -->
+      <div>
+        <!-- Cohort Overview Card -->
+        <div class="card">
+          <div class="card-title">
+            <span>Active Cohort State: "Rust 14-Day Sprint"</span>
+            <span id="cohort-phase" class="badge badge-amber"
+              >Milestone 1 Active</span
+            >
+          </div>
+
+          <div class="stat-row">
+            <span style="color: var(--text-muted)">Assigned Material</span>
+            <span class="stat-val" style="font-size: 11px"
+              >Anchor PDAs & CPIs (Hash: 8a9f...3e01)</span
+            >
+          </div>
+          <div class="stat-row">
+            <span style="color: var(--text-muted)">Milestone Progress</span>
+            <span class="stat-val" id="milestone-status">Milestone 1 of 3</span>
+          </div>
+          <div class="stat-row">
+            <span style="color: var(--text-muted)"
+              >Deadline & Grace Period</span
+            >
+            <span
+              class="stat-val"
+              id="time-remaining"
+              style="color: var(--amber)"
+              >18m remaining</span
+            >
+          </div>
+          <div class="stat-row">
+            <span style="color: var(--text-muted)">Forfeit Penalty</span>
+            <span class="stat-val">33.3% per missed milestone</span>
+          </div>
+          <div class="stat-row">
+            <span style="color: var(--text-muted)"
+              >Oracle Liveness (ADR 0002)</span
+            >
+            <span
+              class="stat-val"
+              id="oracle-status"
+              style="color: var(--emerald)"
+              >Active (Signer Ready)</span
+            >
+          </div>
+        </div>
+
+        <!-- Cohort Members & Balances -->
+        <div class="card">
+          <div class="card-title">
+            <span>Cohort Members & Pledges</span>
+            <span style="font-size: 10px; color: var(--text-muted)"
+              >Per-Wallet PDAs</span
+            >
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Wallet</th>
+                <th>Pledge</th>
+                <th>Quiz Attestation</th>
+                <th>Forfeited</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="participants-tbody">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Real-Time Protocol Event Stream -->
+        <div class="card">
+          <div class="card-title">
+            <span>Solana & AI Oracle Event Stream</span>
+            <span style="font-size: 10px; color: var(--text-muted)"
+              >Live Events</span
+            >
+          </div>
+          <div id="log-feed" class="log-feed">
+            <!-- Log lines -->
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- RIGHT COLUMN: PROTOCOL STATE & LIVE LOGS -->
-    <div>
+    <!-- PURE LOGIC MODULE (Liftable directly into production backend/program) -->
+    <script>
+      // State Model
+      const INITIAL_STATE = {
+        cohortId: "cohort-rust-solana",
+        depositPerUser: 2.0, // 2 SOL per participant
+        currentMilestone: 1,
+        totalMilestones: 3,
+        deadlineMinutes: 20,
+        timeElapsedMinutes: 0,
+        rewardPool: 0.0,
+        oracleSilentHours: 0,
+        isSettled: false,
+        isCompleted: false,
+        participants: {
+          "Alice (User 1)": {
+            pledge: 2.0,
+            attested: false,
+            forfeited: 0.0,
+            attempts: 0,
+            status: "Active",
+          },
+          "Bob (User 2)": {
+            pledge: 2.0,
+            attested: false,
+            forfeited: 0.0,
+            attempts: 0,
+            status: "Active",
+          },
+          "Charlie (User 3)": {
+            pledge: 2.0,
+            attested: false,
+            forfeited: 0.0,
+            attempts: 0,
+            status: "Active",
+          },
+        },
+      };
 
-      <!-- Cohort Overview Card -->
-      <div class="card">
-        <div class="card-title">
-          <span>Active Cohort State: "Rust 14-Day Sprint"</span>
-          <span id="cohort-phase" class="badge badge-amber">Milestone 1 Active</span>
-        </div>
+      let state = JSON.parse(JSON.stringify(INITIAL_STATE));
 
-        <div class="stat-row">
-          <span style="color: var(--text-muted);">Assigned Material</span>
-          <span class="stat-val" style="font-size: 11px;">Anchor PDAs & CPIs (Hash: 8a9f...3e01)</span>
-        </div>
-        <div class="stat-row">
-          <span style="color: var(--text-muted);">Milestone Progress</span>
-          <span class="stat-val" id="milestone-status">Milestone 1 of 3</span>
-        </div>
-        <div class="stat-row">
-          <span style="color: var(--text-muted);">Deadline & Grace Period</span>
-          <span class="stat-val" id="time-remaining" style="color: var(--amber);">18m remaining</span>
-        </div>
-        <div class="stat-row">
-          <span style="color: var(--text-muted);">Forfeit Penalty</span>
-          <span class="stat-val">33.3% per missed milestone</span>
-        </div>
-        <div class="stat-row">
-          <span style="color: var(--text-muted);">Oracle Liveness (ADR 0002)</span>
-          <span class="stat-val" id="oracle-status" style="color: var(--emerald);">Active (Signer Ready)</span>
-        </div>
-      </div>
-
-      <!-- Cohort Members & Balances -->
-      <div class="card">
-        <div class="card-title">
-          <span>Cohort Members & Pledges</span>
-          <span style="font-size: 10px; color: var(--text-muted);">Per-Wallet PDAs</span>
-        </div>
-
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Wallet</th>
-              <th>Pledge</th>
-              <th>Quiz Attestation</th>
-              <th>Forfeited</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="participants-tbody">
-            <!-- Rendered by JS -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Real-Time Protocol Event Stream -->
-      <div class="card">
-        <div class="card-title">
-          <span>Solana & AI Oracle Event Stream</span>
-          <span style="font-size: 10px; color: var(--text-muted);">Live Events</span>
-        </div>
-        <div id="log-feed" class="log-feed">
-          <!-- Log lines -->
-        </div>
-      </div>
-
-    </div>
-
-  </div>
-
-  <!-- PURE LOGIC MODULE (Liftable directly into production backend/program) -->
-  <script>
-    // State Model
-    const INITIAL_STATE = {
-      cohortId: "cohort-rust-solana",
-      depositPerUser: 2.0, // 2 SOL per participant
-      currentMilestone: 1,
-      totalMilestones: 3,
-      deadlineMinutes: 20,
-      timeElapsedMinutes: 0,
-      rewardPool: 0.0,
-      oracleSilentHours: 0,
-      isSettled: false,
-      isCompleted: false,
-      participants: {
-        "Alice (User 1)": { pledge: 2.0, attested: false, forfeited: 0.0, attempts: 0, status: "Active" },
-        "Bob (User 2)": { pledge: 2.0, attested: false, forfeited: 0.0, attempts: 0, status: "Active" },
-        "Charlie (User 3)": { pledge: 2.0, attested: false, forfeited: 0.0, attempts: 0, status: "Active" }
+      // Logging helper
+      function log(msg, type = "normal") {
+        const feed = document.getElementById("log-feed");
+        const div = document.createElement("div");
+        div.className = `log-entry ${type}`;
+        const time = new Date().toLocaleTimeString();
+        div.textContent = `[${time}] ${msg}`;
+        feed.prepend(div);
       }
-    };
 
-    let state = JSON.parse(JSON.stringify(INITIAL_STATE));
-
-    // Logging helper
-    function log(msg, type = "normal") {
-      const feed = document.getElementById("log-feed");
-      const div = document.createElement("div");
-      div.className = `log-entry ${type}`;
-      const time = new Date().toLocaleTimeString();
-      div.textContent = `[${time}] ${msg}`;
-      feed.prepend(div);
-    }
-
-    // Pure State Reducer / Actions
-    function reduce(action, payload) {
-      switch (action) {
-        case "JOIN":
-          if (!state.participants[payload.name]) {
-            state.participants[payload.name] = {
-              pledge: state.depositPerUser,
-              attested: false,
-              forfeited: 0.0,
-              attempts: 0,
-              status: "Active"
-            };
-            log(`Wallet joined: ${payload.name} deposited ${state.depositPerUser} SOL`, "sol");
-          }
-          break;
-
-        case "QUIZ_PASS":
-          const pPass = state.participants[payload.name];
-          if (pPass && pPass.attempts < 3) {
-            pPass.attempts++;
-            pPass.attested = true;
-            log(`AI Oracle verified ${payload.name} (Attempt ${pPass.attempts}/3). Signed Ed25519 attestation!`, "pass");
-            log(`Instruction: RecordCompletion verified on-chain via Ed25519 Precompile (ADR 0005)`, "event");
-          }
-          break;
-
-        case "QUIZ_FAIL":
-          const pFail = state.participants[payload.name];
-          if (pFail && pFail.attempts < 3) {
-            pFail.attempts++;
-            log(`AI Oracle graded ${payload.name}: 58% (Failed Attempt ${pFail.attempts}/3). NO FUNDS MOVED (ADR 0001). User can retry before deadline.`, "fail");
-          }
-          break;
-
-        case "ADVANCE_TIME":
-          state.timeElapsedMinutes += payload.minutes;
-          log(`Time progressed: +${payload.minutes} minutes (Total elapsed: ${state.timeElapsedMinutes}m)`, "normal");
-          if (state.timeElapsedMinutes >= state.deadlineMinutes) {
-            log(`Milestone 1 deadline + grace expired! Anyone can now trigger permissionless settlement.`, "event");
-          }
-          break;
-
-        case "PERMISSIONLESS_SETTLE":
-          if (state.timeElapsedMinutes >= state.deadlineMinutes && !state.isSettled) {
-            state.isSettled = true;
-            log(`Permissionless keeper triggered Settle(Milestone 1) on Solana`, "event");
-            const penaltyPerMiss = state.depositPerUser / state.totalMilestones; // 0.666 SOL
-
-            Object.entries(state.participants).forEach(([name, p]) => {
-              if (!p.attested) {
-                p.forfeited += penaltyPerMiss;
-                p.pledge -= penaltyPerMiss;
-                p.status = "Missed Milestone 1";
-                state.rewardPool += penaltyPerMiss;
-                log(`Participant ${name} missed deadline! Forfeited ${penaltyPerMiss.toFixed(3)} SOL to Cohort Reward Pool (ADR 0006)`, "fail");
-              } else {
-                p.status = "Milestone 1 Completed";
-              }
-            });
-          } else if (state.timeElapsedMinutes < state.deadlineMinutes) {
-            log(`Cannot settle yet! Deadline not reached (${state.deadlineMinutes - state.timeElapsedMinutes}m remaining)`, "fail");
-          }
-          break;
-
-        case "CREATOR_OVERRIDE":
-          const pOvr = state.participants[payload.name];
-          if (pOvr && !pOvr.attested) {
-            // Check oracle liveness gate (ADR 0002)
-            pOvr.attested = true;
-            pOvr.status = "Creator Overridden";
-            log(`Creator signed override for ${payload.name}. Emitted on-chain CreatorOverrideEvent (ADR 0002)`, "pass");
-          }
-          break;
-
-        case "CLAIM_REWARDS":
-          if (state.isSettled) {
-            // Find finishers
-            const finishers = Object.entries(state.participants).filter(([n, p]) => p.attested);
-            if (finishers.length > 0) {
-              const rewardSplit = state.rewardPool / finishers.length;
-              finishers.forEach(([n, p]) => {
-                p.pledge += rewardSplit;
-                log(`Finisher ${n} claimed ${p.pledge.toFixed(3)} SOL (${rewardSplit.toFixed(3)} SOL bonus reward from pool!)`, "sol");
-              });
-              state.rewardPool = 0.0;
-              state.isCompleted = true;
+      // Pure State Reducer / Actions
+      function reduce(action, payload) {
+        switch (action) {
+          case "JOIN":
+            if (!state.participants[payload.name]) {
+              state.participants[payload.name] = {
+                pledge: state.depositPerUser,
+                attested: false,
+                forfeited: 0.0,
+                attempts: 0,
+                status: "Active",
+              };
+              log(
+                `Wallet joined: ${payload.name} deposited ${state.depositPerUser} SOL`,
+                "sol"
+              );
             }
-          } else {
-            log(`Cannot claim before milestone settlement!`, "fail");
-          }
-          break;
+            break;
 
-        case "RESET":
-          state = JSON.parse(JSON.stringify(INITIAL_STATE));
-          log("Protocol state reset to initial conditions", "normal");
-          break;
+          case "QUIZ_PASS":
+            const pPass = state.participants[payload.name];
+            if (pPass && pPass.attempts < 3) {
+              pPass.attempts++;
+              pPass.attested = true;
+              log(
+                `AI Oracle verified ${payload.name} (Attempt ${pPass.attempts}/3). Signed Ed25519 attestation!`,
+                "pass"
+              );
+              log(
+                `Instruction: RecordCompletion verified on-chain via Ed25519 Precompile (ADR 0005)`,
+                "event"
+              );
+            }
+            break;
+
+          case "QUIZ_FAIL":
+            const pFail = state.participants[payload.name];
+            if (pFail && pFail.attempts < 3) {
+              pFail.attempts++;
+              log(
+                `AI Oracle graded ${payload.name}: 58% (Failed Attempt ${pFail.attempts}/3). NO FUNDS MOVED (ADR 0001). User can retry before deadline.`,
+                "fail"
+              );
+            }
+            break;
+
+          case "ADVANCE_TIME":
+            state.timeElapsedMinutes += payload.minutes;
+            log(
+              `Time progressed: +${payload.minutes} minutes (Total elapsed: ${state.timeElapsedMinutes}m)`,
+              "normal"
+            );
+            if (state.timeElapsedMinutes >= state.deadlineMinutes) {
+              log(
+                `Milestone 1 deadline + grace expired! Anyone can now trigger permissionless settlement.`,
+                "event"
+              );
+            }
+            break;
+
+          case "PERMISSIONLESS_SETTLE":
+            if (
+              state.timeElapsedMinutes >= state.deadlineMinutes &&
+              !state.isSettled
+            ) {
+              state.isSettled = true;
+              log(
+                `Permissionless keeper triggered Settle(Milestone 1) on Solana`,
+                "event"
+              );
+              const penaltyPerMiss =
+                state.depositPerUser / state.totalMilestones; // 0.666 SOL
+
+              Object.entries(state.participants).forEach(([name, p]) => {
+                if (!p.attested) {
+                  p.forfeited += penaltyPerMiss;
+                  p.pledge -= penaltyPerMiss;
+                  p.status = "Missed Milestone 1";
+                  state.rewardPool += penaltyPerMiss;
+                  log(
+                    `Participant ${name} missed deadline! Forfeited ${penaltyPerMiss.toFixed(3)} SOL to Cohort Reward Pool (ADR 0006)`,
+                    "fail"
+                  );
+                } else {
+                  p.status = "Milestone 1 Completed";
+                }
+              });
+            } else if (state.timeElapsedMinutes < state.deadlineMinutes) {
+              log(
+                `Cannot settle yet! Deadline not reached (${state.deadlineMinutes - state.timeElapsedMinutes}m remaining)`,
+                "fail"
+              );
+            }
+            break;
+
+          case "CREATOR_OVERRIDE":
+            const pOvr = state.participants[payload.name];
+            if (pOvr && !pOvr.attested) {
+              // Check oracle liveness gate (ADR 0002)
+              pOvr.attested = true;
+              pOvr.status = "Creator Overridden";
+              log(
+                `Creator signed override for ${payload.name}. Emitted on-chain CreatorOverrideEvent (ADR 0002)`,
+                "pass"
+              );
+            }
+            break;
+
+          case "CLAIM_REWARDS":
+            if (state.isSettled) {
+              // Find finishers
+              const finishers = Object.entries(state.participants).filter(
+                ([n, p]) => p.attested
+              );
+              if (finishers.length > 0) {
+                const rewardSplit = state.rewardPool / finishers.length;
+                finishers.forEach(([n, p]) => {
+                  p.pledge += rewardSplit;
+                  log(
+                    `Finisher ${n} claimed ${p.pledge.toFixed(3)} SOL (${rewardSplit.toFixed(3)} SOL bonus reward from pool!)`,
+                    "sol"
+                  );
+                });
+                state.rewardPool = 0.0;
+                state.isCompleted = true;
+              }
+            } else {
+              log(`Cannot claim before milestone settlement!`, "fail");
+            }
+            break;
+
+          case "RESET":
+            state = JSON.parse(JSON.stringify(INITIAL_STATE));
+            log("Protocol state reset to initial conditions", "normal");
+            break;
+        }
+
+        render();
       }
 
-      render();
-    }
+      // UI RENDERER
+      function render() {
+        // Calculate Invariants
+        let totalPledgedInVault = 0;
+        Object.values(state.participants).forEach((p) => {
+          totalPledgedInVault += p.pledge;
+        });
+        const grandVaultTotal = totalPledgedInVault + state.rewardPool;
 
-    // UI RENDERER
-    function render() {
-      // Calculate Invariants
-      let totalPledgedInVault = 0;
-      Object.values(state.participants).forEach(p => {
-        totalPledgedInVault += p.pledge;
-      });
-      const grandVaultTotal = totalPledgedInVault + state.rewardPool;
+        document.getElementById("inv-vault").textContent =
+          `${grandVaultTotal.toFixed(3)} SOL`;
+        document.getElementById("inv-claims").textContent =
+          `${totalPledgedInVault.toFixed(3)} SOL`;
+        document.getElementById("inv-pool").textContent =
+          `${state.rewardPool.toFixed(3)} SOL`;
 
-      document.getElementById("inv-vault").textContent = `${grandVaultTotal.toFixed(3)} SOL`;
-      document.getElementById("inv-claims").textContent = `${totalPledgedInVault.toFixed(3)} SOL`;
-      document.getElementById("inv-pool").textContent = `${state.rewardPool.toFixed(3)} SOL`;
+        // Status
+        const remainingTime = Math.max(
+          0,
+          state.deadlineMinutes - state.timeElapsedMinutes
+        );
+        document.getElementById("time-remaining").textContent =
+          remainingTime > 0
+            ? `${remainingTime}m remaining`
+            : "Deadline Expired";
+        document.getElementById("time-remaining").style.color =
+          remainingTime > 0 ? "var(--amber)" : "var(--rose)";
 
-      // Status
-      const remainingTime = Math.max(0, state.deadlineMinutes - state.timeElapsedMinutes);
-      document.getElementById("time-remaining").textContent = remainingTime > 0 ? `${remainingTime}m remaining` : "Deadline Expired";
-      document.getElementById("time-remaining").style.color = remainingTime > 0 ? "var(--amber)" : "var(--rose)";
+        const phaseBadge = document.getElementById("cohort-phase");
+        if (state.isCompleted) {
+          phaseBadge.textContent = "Completed & Distributed";
+          phaseBadge.className = "badge badge-emerald";
+        } else if (state.isSettled) {
+          phaseBadge.textContent = "Milestone 1 Settled";
+          phaseBadge.className = "badge badge-rose";
+        } else {
+          phaseBadge.textContent = "Milestone 1 Active";
+          phaseBadge.className = "badge badge-amber";
+        }
 
-      const phaseBadge = document.getElementById("cohort-phase");
-      if (state.isCompleted) {
-        phaseBadge.textContent = "Completed & Distributed";
-        phaseBadge.className = "badge badge-emerald";
-      } else if (state.isSettled) {
-        phaseBadge.textContent = "Milestone 1 Settled";
-        phaseBadge.className = "badge badge-rose";
-      } else {
-        phaseBadge.textContent = "Milestone 1 Active";
-        phaseBadge.className = "badge badge-amber";
-      }
-
-      // Participants Table
-      const tbody = document.getElementById("participants-tbody");
-      tbody.innerHTML = "";
-      Object.entries(state.participants).forEach(([name, p]) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
+        // Participants Table
+        const tbody = document.getElementById("participants-tbody");
+        tbody.innerHTML = "";
+        Object.entries(state.participants).forEach(([name, p]) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
           <td style="font-weight: 600;">${name}</td>
           <td style="font-family: var(--font-mono);">${p.pledge.toFixed(3)} SOL</td>
           <td>
-            ${p.attested 
-              ? `<span class="badge badge-emerald">✓ Verified (Ed25519)</span>` 
-              : `<span class="badge ${p.attempts > 0 ? 'badge-rose' : 'badge-amber'}">${p.attempts}/3 Attempts</span>`}
+            ${
+              p.attested
+                ? `<span class="badge badge-emerald">✓ Verified (Ed25519)</span>`
+                : `<span class="badge ${p.attempts > 0 ? "badge-rose" : "badge-amber"}">${p.attempts}/3 Attempts</span>`
+            }
           </td>
-          <td style="font-family: var(--font-mono); color: ${p.forfeited > 0 ? 'var(--rose)' : 'var(--text-muted)'};">
+          <td style="font-family: var(--font-mono); color: ${p.forfeited > 0 ? "var(--rose)" : "var(--text-muted)"};">
             ${p.forfeited > 0 ? `-${p.forfeited.toFixed(3)} SOL` : "0.000 SOL"}
           </td>
           <td><span style="font-size: 11px; color: var(--text-muted);">${p.status}</span></td>
         `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // Action dispatcher wrapper
-    function doAction(actionName) {
-      switch (actionName) {
-        case "join_wallet": reduce("JOIN", { name: "Bob (User 4)" }); break;
-        case "submit_ai_pass": reduce("QUIZ_PASS", { name: "Alice (User 1)" }); break;
-        case "submit_ai_fail": reduce("QUIZ_FAIL", { name: "Bob (User 2)" }); break;
-        case "advance_time": reduce("ADVANCE_TIME", { minutes: 20 }); break;
-        case "permissionless_settle": reduce("PERMISSIONLESS_SETTLE"); break;
-        case "creator_override": reduce("CREATOR_OVERRIDE", { name: "Charlie (User 3)" }); break;
-        case "claim_rewards": reduce("CLAIM_REWARDS"); break;
-        case "reset": reduce("RESET"); break;
+          tbody.appendChild(tr);
+        });
       }
-    }
 
-    // GUIDED WALKTHROUGHS
-    let currentScenario = "happy";
-    let currentStepIndex = 0;
-
-    const SCENARIOS = {
-      happy: {
-        title: "The Happy Path (Complete Success)",
-        description: "All 3 participants complete the AI quiz, citations are verified, attestations signed and recorded on Solana. Full pledge refunded at the end with zero forfeiture.",
-        steps: [
-          { text: "1. Alice completes the AI quiz with accurate citations", action: () => reduce("QUIZ_PASS", { name: "Alice (User 1)" }) },
-          { text: "2. Bob completes the AI quiz", action: () => reduce("QUIZ_PASS", { name: "Bob (User 2)" }) },
-          { text: "3. Charlie completes the AI quiz", action: () => reduce("QUIZ_PASS", { name: "Charlie (User 3)" }) },
-          { text: "4. Advance time past the milestone deadline (+25m)", action: () => reduce("ADVANCE_TIME", { minutes: 25 }) },
-          { text: "5. Keeper triggers permissionless settlement", action: () => reduce("PERMISSIONLESS_SETTLE") },
-          { text: "6. Everyone claims 100% of their pledge back", action: () => reduce("CLAIM_REWARDS") }
-        ]
-      },
-      slash: {
-        title: "Deterministic Settlement & Forfeiture (ADR 0006)",
-        description: "Alice completes the quiz, but Bob and Charlie miss the deadline. When settlement triggers, their missed milestone forfeits 0.666 SOL each into the reward pool, which Alice claims as a bonus!",
-        steps: [
-          { text: "1. Alice studies and passes the quiz", action: () => reduce("QUIZ_PASS", { name: "Alice (User 1)" }) },
-          { text: "2. Bob and Charlie procrastinate. Advance time (+25m)", action: () => reduce("ADVANCE_TIME", { minutes: 25 }) },
-          { text: "3. Permissionless settlement runs: Bob & Charlie forfeit 33%", action: () => reduce("PERMISSIONLESS_SETTLE") },
-          { text: "4. Alice claims full pledge + entire 1.333 SOL reward pool!", action: () => reduce("CLAIM_REWARDS") }
-        ]
-      },
-      cheating: {
-        title: "Adaptive AI Anti-Cheat Mitigation (ADR 0008)",
-        description: "Bob attempts to guess or paste generic LLM responses. The AI evaluator detects missing material citations and triggers an adaptive oral/text follow-up. Bob fails and retries without fund loss.",
-        steps: [
-          { text: "1. Bob submits generic answer without citations", action: () => reduce("QUIZ_FAIL", { name: "Bob (User 2)" }) },
-          { text: "2. Notice: No penalty occurred! Oracle simply did not sign.", action: () => log("Verified: Failed quiz does not slash (ADR 0001).", "event") },
-          { text: "3. Bob reads the material, quotes the exact text, and passes Attempt 2", action: () => reduce("QUIZ_PASS", { name: "Bob (User 2)" }) }
-        ]
-      },
-      override: {
-        title: "Constrained Creator Override (ADR 0002)",
-        description: "Simulates an off-chain oracle outage. The creator signs a manual completion for Charlie, emitting an on-chain event. Notice creator cannot override themselves.",
-        steps: [
-          { text: "1. Oracle service goes offline for 6 hours", action: () => log("Oracle heartbeat timeout exceeded 4h threshold (ADR 0002).", "fail") },
-          { text: "2. Creator executes override for Charlie (not their own wallet)", action: () => reduce("CREATOR_OVERRIDE", { name: "Charlie (User 3)" }) },
-          { text: "3. Charlie is marked complete before deadline passes", action: () => reduce("ADVANCE_TIME", { minutes: 25 }) },
-          { text: "4. Settlement treats Charlie as attested", action: () => reduce("PERMISSIONLESS_SETTLE") }
-        ]
+      // Action dispatcher wrapper
+      function doAction(actionName) {
+        switch (actionName) {
+          case "join_wallet":
+            reduce("JOIN", { name: "Bob (User 4)" });
+            break;
+          case "submit_ai_pass":
+            reduce("QUIZ_PASS", { name: "Alice (User 1)" });
+            break;
+          case "submit_ai_fail":
+            reduce("QUIZ_FAIL", { name: "Bob (User 2)" });
+            break;
+          case "advance_time":
+            reduce("ADVANCE_TIME", { minutes: 20 });
+            break;
+          case "permissionless_settle":
+            reduce("PERMISSIONLESS_SETTLE");
+            break;
+          case "creator_override":
+            reduce("CREATOR_OVERRIDE", { name: "Charlie (User 3)" });
+            break;
+          case "claim_rewards":
+            reduce("CLAIM_REWARDS");
+            break;
+          case "reset":
+            reduce("RESET");
+            break;
+        }
       }
-    };
 
-    function switchScenario(id) {
-      currentScenario = id;
-      currentStepIndex = 0;
-      reduce("RESET");
-      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-      event.target.classList.add("active");
-      renderScenarioUI();
-    }
+      // GUIDED WALKTHROUGHS
+      let currentScenario = "happy";
+      let currentStepIndex = 0;
 
-    function renderScenarioUI() {
-      const sc = SCENARIOS[currentScenario];
-      const guide = document.getElementById("scenario-guide");
-      const btnContainer = document.getElementById("scenario-btn-container");
+      const SCENARIOS = {
+        happy: {
+          title: "The Happy Path (Complete Success)",
+          description:
+            "All 3 participants complete the AI quiz, citations are verified, attestations signed and recorded on Solana. Full pledge refunded at the end with zero forfeiture.",
+          steps: [
+            {
+              text: "1. Alice completes the AI quiz with accurate citations",
+              action: () => reduce("QUIZ_PASS", { name: "Alice (User 1)" }),
+            },
+            {
+              text: "2. Bob completes the AI quiz",
+              action: () => reduce("QUIZ_PASS", { name: "Bob (User 2)" }),
+            },
+            {
+              text: "3. Charlie completes the AI quiz",
+              action: () => reduce("QUIZ_PASS", { name: "Charlie (User 3)" }),
+            },
+            {
+              text: "4. Advance time past the milestone deadline (+25m)",
+              action: () => reduce("ADVANCE_TIME", { minutes: 25 }),
+            },
+            {
+              text: "5. Keeper triggers permissionless settlement",
+              action: () => reduce("PERMISSIONLESS_SETTLE"),
+            },
+            {
+              text: "6. Everyone claims 100% of their pledge back",
+              action: () => reduce("CLAIM_REWARDS"),
+            },
+          ],
+        },
+        slash: {
+          title: "Deterministic Settlement & Forfeiture (ADR 0006)",
+          description:
+            "Alice completes the quiz, but Bob and Charlie miss the deadline. When settlement triggers, their missed milestone forfeits 0.666 SOL each into the reward pool, which Alice claims as a bonus!",
+          steps: [
+            {
+              text: "1. Alice studies and passes the quiz",
+              action: () => reduce("QUIZ_PASS", { name: "Alice (User 1)" }),
+            },
+            {
+              text: "2. Bob and Charlie procrastinate. Advance time (+25m)",
+              action: () => reduce("ADVANCE_TIME", { minutes: 25 }),
+            },
+            {
+              text: "3. Permissionless settlement runs: Bob & Charlie forfeit 33%",
+              action: () => reduce("PERMISSIONLESS_SETTLE"),
+            },
+            {
+              text: "4. Alice claims full pledge + entire 1.333 SOL reward pool!",
+              action: () => reduce("CLAIM_REWARDS"),
+            },
+          ],
+        },
+        cheating: {
+          title: "Adaptive AI Anti-Cheat Mitigation (ADR 0008)",
+          description:
+            "Bob attempts to guess or paste generic LLM responses. The AI evaluator detects missing material citations and triggers an adaptive oral/text follow-up. Bob fails and retries without fund loss.",
+          steps: [
+            {
+              text: "1. Bob submits generic answer without citations",
+              action: () => reduce("QUIZ_FAIL", { name: "Bob (User 2)" }),
+            },
+            {
+              text: "2. Notice: No penalty occurred! Oracle simply did not sign.",
+              action: () =>
+                log(
+                  "Verified: Failed quiz does not slash (ADR 0001).",
+                  "event"
+                ),
+            },
+            {
+              text: "3. Bob reads the material, quotes the exact text, and passes Attempt 2",
+              action: () => reduce("QUIZ_PASS", { name: "Bob (User 2)" }),
+            },
+          ],
+        },
+        override: {
+          title: "Constrained Creator Override (ADR 0002)",
+          description:
+            "Simulates an off-chain oracle outage. The creator signs a manual completion for Charlie, emitting an on-chain event. Notice creator cannot override themselves.",
+          steps: [
+            {
+              text: "1. Oracle service goes offline for 6 hours",
+              action: () =>
+                log(
+                  "Oracle heartbeat timeout exceeded 4h threshold (ADR 0002).",
+                  "fail"
+                ),
+            },
+            {
+              text: "2. Creator executes override for Charlie (not their own wallet)",
+              action: () =>
+                reduce("CREATOR_OVERRIDE", { name: "Charlie (User 3)" }),
+            },
+            {
+              text: "3. Charlie is marked complete before deadline passes",
+              action: () => reduce("ADVANCE_TIME", { minutes: 25 }),
+            },
+            {
+              text: "4. Settlement treats Charlie as attested",
+              action: () => reduce("PERMISSIONLESS_SETTLE"),
+            },
+          ],
+        },
+      };
 
-      const currentStep = sc.steps[currentStepIndex];
+      function switchScenario(id) {
+        currentScenario = id;
+        currentStepIndex = 0;
+        reduce("RESET");
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        event.target.classList.add("active");
+        renderScenarioUI();
+      }
 
-      guide.innerHTML = `
+      function renderScenarioUI() {
+        const sc = SCENARIOS[currentScenario];
+        const guide = document.getElementById("scenario-guide");
+        const btnContainer = document.getElementById("scenario-btn-container");
+
+        const currentStep = sc.steps[currentStepIndex];
+
+        guide.innerHTML = `
         <div style="font-weight: 700; color: var(--amber); margin-bottom: 4px;">${sc.title}</div>
         <p style="color: var(--text-muted); margin-bottom: 8px;">${sc.description}</p>
         <div style="font-size: 11px; font-family: var(--font-mono);">
@@ -659,38 +918,41 @@
         </div>
       `;
 
-      if (currentStep) {
-        btnContainer.innerHTML = `
+        if (currentStep) {
+          btnContainer.innerHTML = `
           <button class="action-btn" style="width: 100%; border-color: var(--amber); background: #273044; color: #fff; padding: 12px;" onclick="advanceScenarioStep()">
             <strong>Execute Step ${currentStepIndex + 1}</strong>
             ${currentStep.text} →
           </button>
         `;
-      } else {
-        btnContainer.innerHTML = `
+        } else {
+          btnContainer.innerHTML = `
           <button class="action-btn" style="width: 100%; border-color: var(--emerald);" onclick="switchScenario('${currentScenario}')">
             <strong>Scenario Finished!</strong>
             ↺ Replay Scenario
           </button>
         `;
+        }
       }
-    }
 
-    function advanceScenarioStep() {
-      const sc = SCENARIOS[currentScenario];
-      const step = sc.steps[currentStepIndex];
-      if (step) {
-        step.action();
-        currentStepIndex++;
-        renderScenarioUI();
+      function advanceScenarioStep() {
+        const sc = SCENARIOS[currentScenario];
+        const step = sc.steps[currentStepIndex];
+        if (step) {
+          step.action();
+          currentStepIndex++;
+          renderScenarioUI();
+        }
       }
-    }
 
-    // Initial render
-    log("PagePledge Protocol Prototype Initialized.", "event");
-    log("Rules: Vault enforces payouts; Oracle can approve but never slash (ADR 0001).", "normal");
-    render();
-    renderScenarioUI();
-  </script>
-</body>
+      // Initial render
+      log("PagePledge Protocol Prototype Initialized.", "event");
+      log(
+        "Rules: Vault enforces payouts; Oracle can approve but never slash (ADR 0001).",
+        "normal"
+      );
+      render();
+      renderScenarioUI();
+    </script>
+  </body>
 </html>

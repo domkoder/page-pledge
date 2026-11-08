@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { getMilestoneMaterial } from '@/lib/oracle/passages';
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { getMilestoneMaterial } from "@/lib/oracle/passages";
 
 const QuestionRequestSchema = z
   .object({
@@ -16,7 +16,10 @@ export async function POST(request: Request) {
     const parsed = QuestionRequestSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Invalid question request payload', issues: parsed.error.issues },
+        {
+          error: "Invalid question request payload",
+          issues: parsed.error.issues,
+        },
         { status: 400 }
       );
     }
@@ -25,7 +28,8 @@ export async function POST(request: Request) {
     const material = getMilestoneMaterial(milestoneIdx);
     const question = material.questions[variantIdx % material.questions.length];
     const practiceDrill = weakTopic
-      ? material.practiceDrills[weakTopic] ?? Object.values(material.practiceDrills)[0]
+      ? (material.practiceDrills[weakTopic] ??
+        Object.values(material.practiceDrills)[0])
       : Object.values(material.practiceDrills)[0];
 
     return NextResponse.json({
@@ -48,7 +52,12 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Failed to load milestone question' },
+      {
+        error:
+          err instanceof Error
+            ? err.message
+            : "Failed to load milestone question",
+      },
       { status: 500 }
     );
   }

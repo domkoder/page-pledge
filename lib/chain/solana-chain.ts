@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { EconomicsResult, MilestoneOutcome } from '../economics';
+import { EconomicsResult, MilestoneOutcome } from "../economics";
 import {
   ChainClient,
   CohortAccount,
@@ -9,7 +9,7 @@ import {
   SimulatedTransactionLog,
   TxResult,
   ValidatedCohortIntent,
-} from './types';
+} from "./types";
 
 /**
  * SolanaChain Devnet Stub (Section 2 of p1.md)
@@ -19,7 +19,7 @@ import {
  * Contains one method per future Anchor instruction with a detailed TODO.
  */
 export class SolanaChain implements ChainClient {
-  public readonly mode = 'devnet' as const;
+  public readonly mode = "devnet" as const;
 
   // Named snake_case aliases matching Anchor IDL instruction names
   public readonly create_cohort = this.createCohort.bind(this);
@@ -58,11 +58,13 @@ export class SolanaChain implements ChainClient {
     _milestoneIdx: number,
     _now?: number
   ): MilestoneOutcome {
-    return 'PENDING';
+    return "PENDING";
   }
 
   public computeLiveEconomics(_cohortId: string): EconomicsResult {
-    throw new Error('TODO: Fetch on-chain Cohort + Participant PDAs and run computeCohortEconomics');
+    throw new Error(
+      "TODO: Fetch on-chain Cohort + Participant PDAs and run computeCohortEconomics"
+    );
   }
 
   public async createCohort(
@@ -71,7 +73,9 @@ export class SolanaChain implements ChainClient {
   ): Promise<TxResult<CohortAccount>> {
     // TODO(anchor:create_cohort): Derive Cohort PDA [b"cohort", creator, id] and 0-byte Vault SystemAccount PDA,
     // serialize ValidatedCohortIntent parameters, and send `program.methods.createCohort(...)`.
-    throw new Error('TODO: SolanaChain.create_cohort not yet wired to deployed Anchor program');
+    throw new Error(
+      "TODO: SolanaChain.create_cohort not yet wired to deployed Anchor program"
+    );
   }
 
   public async startCohort(
@@ -79,13 +83,20 @@ export class SolanaChain implements ChainClient {
     _cohortId: string
   ): Promise<TxResult<CohortAccount>> {
     // TODO(anchor:start_cohort): Send `program.methods.startCohort()` signed by cohort creator or joined participant once >= 2 joined.
-    throw new Error('TODO: SolanaChain.start_cohort not yet wired to deployed Anchor program');
+    throw new Error(
+      "TODO: SolanaChain.start_cohort not yet wired to deployed Anchor program"
+    );
   }
 
-  public async join(_user: string, _cohortId: string): Promise<TxResult<CohortAccount>> {
+  public async join(
+    _user: string,
+    _cohortId: string
+  ): Promise<TxResult<CohortAccount>> {
     // TODO(anchor:join): Derive Participant PDA [b"participant", cohort, user], transfer `cohort.stake` lamports
     // from user wallet to cohort Vault PDA via SystemProgram::transfer.
-    throw new Error('TODO: SolanaChain.join not yet wired to deployed Anchor program');
+    throw new Error(
+      "TODO: SolanaChain.join not yet wired to deployed Anchor program"
+    );
   }
 
   public async commitSubmission(
@@ -97,7 +108,9 @@ export class SolanaChain implements ChainClient {
   ): Promise<TxResult<MilestoneCommitRecord>> {
     // TODO(anchor:commit_submission): Store 32-byte `answerHash` and `Clock::get()?.unix_timestamp`
     // in the Participant PDA for `milestone_idx` while `clock.unix_timestamp <= cohort.deadlines[milestone_idx]`.
-    throw new Error('TODO: SolanaChain.commit_submission not yet wired to deployed Anchor program');
+    throw new Error(
+      "TODO: SolanaChain.commit_submission not yet wired to deployed Anchor program"
+    );
   }
 
   public async completeMilestone(
@@ -109,35 +122,51 @@ export class SolanaChain implements ChainClient {
     // TODO(anchor:complete_milestone): Prepend Ed25519SigVerify111111111111111111111111111 instruction
     // over canonical PAGEPLEDGE_ATT_V1 payload, set bit `1 << milestone_idx` in `participant.completed_bitmap`,
     // and update `cohort.last_oracle_ts = clock.unix_timestamp`.
-    throw new Error('TODO: SolanaChain.complete_milestone not yet wired to deployed Anchor program');
+    throw new Error(
+      "TODO: SolanaChain.complete_milestone not yet wired to deployed Anchor program"
+    );
   }
 
   public async settleUser(
     _caller: string,
     _cohortId: string,
     _targetUser: string
-  ): Promise<TxResult<{ missedCount: number; forfeit: bigint; bounty: bigint }>> {
+  ): Promise<
+    TxResult<{ missedCount: number; forfeit: bigint; bounty: bigint }>
+  > {
     // TODO(anchor:settle_user): Permissionless ix after `last_deadline + grace`. Tallies missed milestones,
     // transfers `min(1% of forfeit, 0.01 SOL)` bounty in lamports to `caller`, and updates accumulators on Cohort PDA.
-    throw new Error('TODO: SolanaChain.settle_user not yet wired to deployed Anchor program');
+    throw new Error(
+      "TODO: SolanaChain.settle_user not yet wired to deployed Anchor program"
+    );
   }
 
-  public async finalize(_caller: string, _cohortId: string): Promise<TxResult<EconomicsResult>> {
+  public async finalize(
+    _caller: string,
+    _cohortId: string
+  ): Promise<TxResult<EconomicsResult>> {
     // TODO(anchor:finalize): Permissionless ix once `settled_count == participant_count`. Computes pool,
     // protocol fee (200 bps), haircut h, and transfers protocol fee + rounding dust in lamports to Treasury.
-    throw new Error('TODO: SolanaChain.finalize not yet wired to deployed Anchor program');
+    throw new Error(
+      "TODO: SolanaChain.finalize not yet wired to deployed Anchor program"
+    );
   }
 
-  public async claim(_user: string, _cohortId: string): Promise<TxResult<{ payout: bigint }>> {
+  public async claim(
+    _user: string,
+    _cohortId: string
+  ): Promise<TxResult<{ payout: bigint }>> {
     // TODO(anchor:claim): Transfers `payout_i` lamports from Cohort Vault PDA to `user` and marks `claimed = true`.
-    throw new Error('TODO: SolanaChain.claim not yet wired to deployed Anchor program');
+    throw new Error(
+      "TODO: SolanaChain.claim not yet wired to deployed Anchor program"
+    );
   }
 
   public async faucet(
     _user: string,
     _amountLamports?: bigint
   ): Promise<TxResult<{ newBalance: bigint }>> {
-    throw new Error('TODO: Devnet SOL airdrop instruction');
+    throw new Error("TODO: Devnet SOL airdrop instruction");
   }
 
   public advanceClock(_deltaSeconds: number): void {

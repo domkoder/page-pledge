@@ -14,7 +14,8 @@ export const SETTLE_BOUNTY_BPS = 100n; // 1.00% (100 bps) of user's forfeit
 export const MAX_SETTLE_BOUNTY = 10_000_000n; // Cap at 0.01 SOL (10_000_000n lamports)
 export const SECONDS_PER_YEAR = 31_536_000n; // 365 * 24 * 60 * 60
 
-export type MilestoneOutcome = 'PENDING' | 'COMMITTED' | 'PASSED' | 'MISSED' | 'NEUTRAL';
+export type MilestoneOutcome =
+  "PENDING" | "COMMITTED" | "PASSED" | "MISSED" | "NEUTRAL";
 
 export interface ParticipantEconomicsInput {
   user: string;
@@ -78,9 +79,13 @@ export interface EconomicsResult {
 /**
  * Computes forfeit F_i = floor(S_i * missed_i / M)
  */
-export function computeForfeit(stake: bigint, missedCount: number, milestoneCount: number): bigint {
+export function computeForfeit(
+  stake: bigint,
+  missedCount: number,
+  milestoneCount: number
+): bigint {
   if (milestoneCount <= 0) {
-    throw new Error('milestoneCount must be > 0');
+    throw new Error("milestoneCount must be > 0");
   }
   if (missedCount <= 0) return 0n;
   if (missedCount >= milestoneCount) return stake;
@@ -105,7 +110,10 @@ export function computeSimulatedYield(
   elapsedSeconds: bigint
 ): bigint {
   if (totalDeposits <= 0n || aprBps <= 0n || elapsedSeconds <= 0n) return 0n;
-  return (totalDeposits * aprBps * elapsedSeconds) / (BPS_DENOMINATOR * SECONDS_PER_YEAR);
+  return (
+    (totalDeposits * aprBps * elapsedSeconds) /
+    (BPS_DENOMINATOR * SECONDS_PER_YEAR)
+  );
 }
 
 /**
@@ -120,7 +128,11 @@ export function computeLenderLoss(principal: bigint, lossBps: bigint): bigint {
 /**
  * Applies haircut h = min(1, A / U) using exact integer floor division.
  */
-function applyHaircut(amount: bigint, assets: bigint, liabilities: bigint): bigint {
+function applyHaircut(
+  amount: bigint,
+  assets: bigint,
+  liabilities: bigint
+): bigint {
   if (amount <= 0n) return 0n;
   if (liabilities <= 0n) return 0n;
   if (assets >= liabilities) return amount;
@@ -137,19 +149,24 @@ export function computeCohortEconomics(input: EconomicsInput): EconomicsResult {
   const feeBps = PROTOCOL_FEE_BPS; // Protocol fee is fixed at 200 bps and not user-settable
 
   if (milestoneCount < 2 || milestoneCount > 10) {
-    throw new Error(`Invalid milestoneCount: ${milestoneCount}. Must be between 2 and 10.`);
+    throw new Error(
+      `Invalid milestoneCount: ${milestoneCount}. Must be between 2 and 10.`
+    );
   }
 
   // 1. Per-user forfeits, bounties, and net forfeits
   const prelim = participants.map((p) => {
     if (p.stake < 0n) throw new Error(`Negative stake for user ${p.user}`);
     if (p.missedCount < 0 || p.missedCount > milestoneCount) {
-      throw new Error(`Invalid missedCount ${p.missedCount} for user ${p.user}`);
+      throw new Error(
+        `Invalid missedCount ${p.missedCount} for user ${p.user}`
+      );
     }
     // If a user missed any milestone, they cannot be eligible
     const eligible = p.missedCount === 0 && p.eligible;
     const forfeit = computeForfeit(p.stake, p.missedCount, milestoneCount);
-    const bounty = p.bountyPaid !== undefined ? p.bountyPaid : computeSettleBounty(forfeit);
+    const bounty =
+      p.bountyPaid !== undefined ? p.bountyPaid : computeSettleBounty(forfeit);
     const netForfeit = forfeit - bounty;
 
     return {
@@ -209,37 +226,46 @@ export function computeCohortEconomics(input: EconomicsInput): EconomicsResult {
   const treasuryYieldSweep = nobodyEligible ? yieldAmount : 0n;
 
   // 6. Per-participant payouts
-  const participantBreakdowns: ParticipantPayoutBreakdown[] = prelim.map((p) => {
-    const preservedStakeAfterHaircut = applyHaircut(p.stake - p.forfeit, assets, liabilities);
+  const participantBreakdowns: ParticipantPayoutBreakdown[] = prelim.map(
+    (p) => {
+      const preservedStakeAfterHaircut = applyHaircut(
+        p.stake - p.forfeit,
+        assets,
+        liabilities
+      );
 
-    let rewardShare = 0n;
-    if (nobodyEligible) {
-      // If nobody is eligible: each user also gets back floor(h * (1 - phi) * N_i), and Y goes to treasury
-      const userNetAfterFee =
-        (p.netForfeit * (BPS_DENOMINATOR - feeBps)) / BPS_DENOMINATOR;
-      rewardShare = applyHaircut(userNetAfterFee, assets, liabilities);
-    } else if (p.eligible) {
-      // Eligible user receives Pool * S_i / sum(S_j over eligible j)
-      rewardShare = (pool * p.stake) / eligibleStakeSum;
+      let rewardShare = 0n;
+      if (nobodyEligible) {
+        // If nobody is eligible: each user also gets back floor(h * (1 - phi) * N_i), and Y goes to treasury
+        const userNetAfterFee =
+          (p.netForfeit * (BPS_DENOMINATOR - feeBps)) / BPS_DENOMINATOR;
+        rewardShare = applyHaircut(userNetAfterFee, assets, liabilities);
+      } else if (p.eligible) {
+        // Eligible user receives Pool * S_i / sum(S_j over eligible j)
+        rewardShare = (pool * p.stake) / eligibleStakeSum;
+      }
+
+      const payout = preservedStakeAfterHaircut + rewardShare;
+
+      return {
+        user: p.user,
+        stake: p.stake,
+        missedCount: p.missedCount,
+        eligible: p.eligible,
+        forfeit: p.forfeit,
+        bounty: p.bounty,
+        netForfeit: p.netForfeit,
+        preservedStakeAfterHaircut,
+        rewardShare,
+        payout,
+      };
     }
+  );
 
-    const payout = preservedStakeAfterHaircut + rewardShare;
-
-    return {
-      user: p.user,
-      stake: p.stake,
-      missedCount: p.missedCount,
-      eligible: p.eligible,
-      forfeit: p.forfeit,
-      bounty: p.bounty,
-      netForfeit: p.netForfeit,
-      preservedStakeAfterHaircut,
-      rewardShare,
-      payout,
-    };
-  });
-
-  const totalPayouts = participantBreakdowns.reduce((acc, p) => acc + p.payout, 0n);
+  const totalPayouts = participantBreakdowns.reduce(
+    (acc, p) => acc + p.payout,
+    0n
+  );
 
   // 7. Floor all divisions and send dust to the treasury.
   // When nobody is eligible, Y also goes to the treasury (included in dust / treasuryTotal).
@@ -294,13 +320,16 @@ export function formatSol(
   const whole = abs / LAMPORTS_PER_SOL;
   const frac = abs % LAMPORTS_PER_SOL;
 
-  const wholeStr = whole.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  const fracFull = frac.toString().padStart(SOL_DECIMALS, '0');
-  const trimmedFrac = fracFull.slice(0, maxDecimals).replace(/0+$/, '');
-  const paddedFrac = trimmedFrac.padEnd(minDecimals, '0');
+  const wholeStr = whole.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const fracFull = frac.toString().padStart(SOL_DECIMALS, "0");
+  const trimmedFrac = fracFull.slice(0, maxDecimals).replace(/0+$/, "");
+  const paddedFrac = trimmedFrac.padEnd(minDecimals, "0");
 
-  const sign = isNegative ? '-' : '';
-  const numStr = paddedFrac.length > 0 ? `${sign}${wholeStr}.${paddedFrac}` : `${sign}${wholeStr}`;
+  const sign = isNegative ? "-" : "";
+  const numStr =
+    paddedFrac.length > 0
+      ? `${sign}${wholeStr}.${paddedFrac}`
+      : `${sign}${wholeStr}`;
   return suffix ? `${numStr} SOL` : numStr;
 }
 
@@ -308,12 +337,12 @@ export function formatSol(
  * Parses a decimal string or number of SOL into lamports BigInt without floats.
  */
 export function parseSolToLamports(value: string | number | bigint): bigint {
-  if (typeof value === 'bigint') return value;
+  if (typeof value === "bigint") return value;
   const str = String(value).trim();
   if (!/^\d+(\.\d{1,9})?$/.test(str)) {
     throw new Error(`Invalid SOL amount: "${str}"`);
   }
-  const [wholePart, fracPart = ''] = str.split('.');
-  const paddedFrac = fracPart.padEnd(SOL_DECIMALS, '0').slice(0, SOL_DECIMALS);
+  const [wholePart, fracPart = ""] = str.split(".");
+  const paddedFrac = fracPart.padEnd(SOL_DECIMALS, "0").slice(0, SOL_DECIMALS);
   return BigInt(wholePart) * LAMPORTS_PER_SOL + BigInt(paddedFrac);
 }
